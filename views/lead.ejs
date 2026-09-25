@@ -1,0 +1,114 @@
+<%- include('partials/header', { title: lead.cognome + ' ' + lead.nome }) %>
+<p><a href="/leads">‹ Tutti i lead</a></p>
+
+<div class="lead-head">
+  <div>
+    <h1><%= lead.cognome %> <%= lead.nome %></h1>
+    <div class="muted">Lead <%= lead.lead_id %> · <%= lead.lead_type %><%= lead.origine ? ' · ' + lead.origine : '' %> · creato il <%= fmtDate(lead.data_creazione) %></div>
+  </div>
+  <%- include('partials/esito', { esito: lead.ult_esito }) %>
+</div>
+
+<div class="grid">
+  <section class="card">
+    <h2>Recapiti</h2>
+    <dl>
+      <dt>Cellulare</dt><dd><% if (lead.cellulare) { %><a href="tel:<%= lead.cellulare %>"><%= lead.cellulare %></a><% } else { %>—<% } %></dd>
+      <dt>Email</dt><dd><% if (lead.email) { %><a href="mailto:<%= lead.email %>"><%= lead.email %></a><% } else { %>—<% } %></dd>
+      <dt>Indirizzo</dt><dd><%= [lead.indirizzo, lead.civico].filter(Boolean).join(' ') || '—' %><br><%= [lead.cap, lead.comune, lead.provincia ? '(' + lead.provincia + ')' : ''].filter(Boolean).join(' ') %></dd>
+      <dt>Consenso ricontatto</dt><dd><%= lead.consenso === 'S' ? 'Sì' : lead.consenso === 'N' ? 'No' : '—' %></dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Dati</h2>
+    <dl>
+      <dt>Codice fiscale</dt><dd><%= lead.cod_fiscale || '—' %></dd>
+      <dt>Targa</dt><dd><%= lead.targa || '—' %></dd>
+      <dt>Scadenza polizza prec.</dt><dd><%= fmtDate(lead.scadenza_polizza) || '—' %></dd>
+      <dt>Preventivo</dt><dd><%= (lead.id_preventivo || '').replace(/^0+$/, '') || '—' %></dd>
+      <dt>Già cliente</dt><dd><%= lead.gia_cliente === 'S' ? 'Sì' : lead.gia_cliente === 'N' ? 'No' : '—' %></dd>
+      <dt>Agenzia</dt><dd><%= lead.agenzia || '—' %></dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Assegnazione</h2>
+    <p><%= lead.assegnato_nome ? 'Assegnato a ' + lead.assegnato_nome : 'Non assegnato' %></p>
+    <% if (user.role === 'admin') { %>
+      <form method="post" action="/leads/<%= lead.id %>/assegna" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <select name="user_id">
+          <option value="">— Nessuno —</option>
+          <% utenti.forEach(u => { %><option value="<%= u.id %>" <%= u.id === lead.assegnato_a ? 'selected' : '' %>><%= u.nome %></option><% }) %>
+        </select>
+        <button>Assegna</button>
+      </form>
+    <% } else if (!lead.assegnato_a) { %>
+      <form method="post" action="/leads/<%= lead.id %>/assegna">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="user_id" value="<%= user.id %>">
+        <button>Prendi in carico</button>
+      </form>
+    <% } else if (lead.assegnato_a === user.id) { %>
+      <form method="post" action="/leads/<%= lead.id %>/assegna">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button>Rilascia</button>
+      </form>
+    <% } %>
+  </section>
+</div>
+
+<% if (collegati.length) { %>
+<div class="flash warn">
+  Stesso cliente anche in:
+  <% collegati.forEach((c, i) => { %><%= i ? ', ' : '' %><a href="/leads/<%= c.id %>">lead <%= c.lead_id %></a> (<%= c.ult_esito || 'da contattare' %>)<% }) %>
+</div>
+<% } %>
+
+<section class="card" id="nuovo-contatto">
+  <h2>Registra contatto</h2>
+  <form method="post" action="/leads/<%= lead.id %>/contatti" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <fieldset class="radios">
+      <legend>Modalità</legend>
+      <% Object.entries(MODALITA).forEach(([k, v]) => { %>
+        <label><input type="radio" name="modalita" value="<%= k %>" required> <%= v %></label>
+      <% }) %>
+    </fieldset>
+    <label>Esito
+      <select name="esito" required>
+        <option value="">— Seleziona —</option>
+        <% ESITI.forEach(e => { %><option><%= e %></option><% }) %>
+      </select>
+    </label>
+    <label>Nota <textarea name="nota" rows="3" maxlength="5000" placeholder="Es. richiamare dopo le 18, interessato a preventivo casa…"></textarea></label>
+    <button class="primary">Salva contatto</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Storico contatti (<%= contatti.length %>)</h2>
+  <% if (contatti.length === 0) { %>
+    <p class="muted">Nessun contatto registrato.</p>
+  <% } else { %>
+  <ol class="timeline">
+    <% contatti.forEach(c => { %>
+      <li>
+        <div class="tl-head">
+          <%- include('partials/esito', { esito: c.esito }) %>
+          <span><%= MODALITA[c.modalita] %> · <%= c.utente %> · <%= fmtDateTime(c.created_at) %></span>
+          <% if (user.role === 'admin') { %>
+            <form method="post" action="/leads/<%= lead.id %>/contatti/<%= c.id %>/elimina" onsubmit="return confirm('Eliminare questo contatto?')">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="link danger">elimina</button>
+            </form>
+          <% } %>
+        </div>
+        <% if (c.nota) { %><p class="nota"><%= c.nota %></p><% } %>
+      </li>
+    <% }) %>
+  </ol>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

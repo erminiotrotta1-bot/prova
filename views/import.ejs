@@ -1,0 +1,30 @@
+<%- include('partials/header', { title: 'Importa' }) %>
+<section class="card">
+  <h1>Importa lead da Excel</h1>
+  <p class="muted">
+    Carica il file dei lead (.xls, .xlsx o .csv) con le colonne standard (Lead Id, Cognome, Nome, Email, Cellulare…).
+    I lead già presenti (stesso <em>Lead Id</em>) vengono aggiornati mantenendo contatti ed esiti registrati.
+  </p>
+  <form method="post" action="/admin/import" enctype="multipart/form-data" class="inline">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <input type="file" name="file" accept=".xls,.xlsx,.csv" required>
+    <button class="primary">Importa</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Ultimi import</h2>
+  <% if (storico.length === 0) { %>
+    <p class="muted">Nessun import effettuato.</p>
+  <% } else { %>
+  <table>
+    <thead><tr><th>Data</th><th>File</th><th>Utente</th><th>Nuovi</th><th>Aggiornati</th></tr></thead>
+    <tbody>
+    <% storico.forEach(i => { %>
+      <tr><td><%= fmtDateTime(i.created_at) %></td><td><%= i.filename %></td><td><%= i.utente %></td><td><%= i.nuovi %></td><td><%= i.aggiornati %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

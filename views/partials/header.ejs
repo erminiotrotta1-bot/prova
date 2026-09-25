@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title + ' · ' : '' %>Portale Lead</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<% if (user) { %>
+<header class="topbar">
+  <a class="brand" href="/leads">Portale Lead</a>
+  <nav>
+    <a href="/leads" class="<%= path.startsWith('/leads') ? 'active' : '' %>">Lead</a>
+    <% if (user.role === 'admin') { %>
+      <a href="/admin/import" class="<%= path === '/admin/import' ? 'active' : '' %>">Importa</a>
+      <a href="/admin/utenti" class="<%= path === '/admin/utenti' ? 'active' : '' %>">Utenti</a>
+      <a href="/admin/export">Esporta Excel</a>
+    <% } %>
+  </nav>
+  <div class="me">
+    <a href="/account" title="Cambia password"><%= user.nome %></a>
+    <form method="post" action="/logout">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="link">Esci</button>
+    </form>
+  </div>
+</header>
+<% } %>
+<main>
+<% if (flash) { %>
+  <div class="flash <%= flash.type %>"><%= flash.text %></div>
+<% } %>

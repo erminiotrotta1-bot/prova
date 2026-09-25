@@ -1,0 +1,53 @@
+<%- include('partials/header', { title: 'Utenti' }) %>
+<section class="card">
+  <h1>Utenti</h1>
+  <table>
+    <thead><tr><th>Nome</th><th>Utente</th><th>Ruolo</th><th>Contatti registrati</th><th>Stato</th><th></th></tr></thead>
+    <tbody>
+    <% utenti.forEach(u => { %>
+      <tr class="<%= u.attivo ? '' : 'disabled' %>">
+        <td><%= u.nome %></td>
+        <td><%= u.username %></td>
+        <td><%= u.role === 'admin' ? 'Amministratore' : 'Collaboratore' %></td>
+        <td><%= u.n_contatti %></td>
+        <td><%= u.attivo ? 'Attivo' : 'Disattivato' %></td>
+        <td class="actions">
+          <% if (u.id !== user.id) { %>
+          <form method="post" action="/admin/utenti/<%= u.id %>/attivo">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button class="link"><%= u.attivo ? 'Disattiva' : 'Riattiva' %></button>
+          </form>
+          <% } %>
+          <details>
+            <summary>Reimposta password</summary>
+            <form method="post" action="/admin/utenti/<%= u.id %>/password" class="inline">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <input name="password" type="text" minlength="8" placeholder="Nuova password" required autocomplete="off">
+              <button>Salva</button>
+            </form>
+          </details>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<section class="card narrow-left">
+  <h2>Nuovo utente</h2>
+  <% if (error) { %><div class="flash error"><%= error %></div><% } %>
+  <form method="post" action="/admin/utenti" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Nome e cognome <input name="nome" value="<%= form.nome || '' %>" required></label>
+    <label>Nome utente <input name="username" value="<%= form.username || '' %>" autocomplete="off" required></label>
+    <label>Password iniziale (min. 8 caratteri) <input name="password" type="text" minlength="8" autocomplete="off" required></label>
+    <label>Ruolo
+      <select name="role">
+        <option value="collaboratore">Collaboratore</option>
+        <option value="admin" <%= form.role === 'admin' ? 'selected' : '' %>>Amministratore</option>
+      </select>
+    </label>
+    <button class="primary">Crea utente</button>
+  </form>
+</section>
+<%- include('partials/footer') %>

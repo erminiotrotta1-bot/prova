@@ -1,0 +1,14 @@
+<%- include('partials/header', { title: 'Primo avvio' }) %>
+<div class="card narrow">
+  <h1>Primo avvio</h1>
+  <p class="muted">Crea l'utente amministratore: potrà importare i file Excel e gestire i collaboratori.</p>
+  <% if (error) { %><div class="flash error"><%= error %></div><% } %>
+  <form method="post" action="/setup" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Nome e cognome <input name="nome" required></label>
+    <label>Nome utente <input name="username" autocomplete="username" required></label>
+    <label>Password (min. 8 caratteri) <input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <button class="primary">Crea amministratore</button>
+  </form>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,13 @@
+<%- include('partials/header', { title: 'Account' }) %>
+<div class="card narrow">
+  <h1>Cambia password</h1>
+  <% if (error) { %><div class="flash error"><%= error %></div><% } %>
+  <form method="post" action="/account" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Password attuale <input name="attuale" type="password" autocomplete="current-password" required></label>
+    <label>Nuova password (min. 8 caratteri) <input name="nuova" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label>Conferma nuova password <input name="conferma" type="password" autocomplete="new-password" minlength="8" required></label>
+    <button class="primary">Salva</button>
+  </form>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,12 @@
+<%- include('partials/header', { title: 'Accesso' }) %>
+<div class="card narrow">
+  <h1>Portale Lead</h1>
+  <% if (error) { %><div class="flash error"><%= error %></div><% } %>
+  <form method="post" action="/login" class="stack">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Nome utente <input name="username" value="<%= username %>" autocomplete="username" required autofocus></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="primary">Accedi</button>
+  </form>
+</div>
+<%- include('partials/footer') %>

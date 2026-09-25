@@ -1,0 +1,81 @@
+<%- include('partials/header', { title: 'Lead' }) %>
+<div class="stats">
+  <a class="stat" href="/leads"><strong><%= stats.totale %></strong> lead totali</a>
+  <a class="stat todo" href="/leads?stato=da_contattare"><strong><%= stats.da_contattare || 0 %></strong> da contattare</a>
+  <a class="stat" href="/leads?stato=contattati"><strong><%= stats.totale - (stats.da_contattare || 0) %></strong> contattati</a>
+</div>
+
+<form class="filters" method="get" action="/leads">
+  <input type="search" name="q" value="<%= filters.q %>" placeholder="Cerca nome, telefono, email, targa…">
+  <select name="stato">
+    <option value="">Tutti gli stati</option>
+    <option value="da_contattare" <%= filters.stato === 'da_contattare' ? 'selected' : '' %>>Da contattare</option>
+    <option value="contattati" <%= filters.stato === 'contattati' ? 'selected' : '' %>>Contattati</option>
+    <optgroup label="Ultimo esito">
+      <% ESITI.forEach(e => { %><option <%= filters.stato === e ? 'selected' : '' %>><%= e %></option><% }) %>
+    </optgroup>
+  </select>
+  <select name="tipo">
+    <option value="">Tutti i tipi</option>
+    <% tipi.forEach(t => { %><option <%= filters.tipo === t ? 'selected' : '' %>><%= t %></option><% }) %>
+  </select>
+  <select name="assegnati">
+    <option value="">Tutte le assegnazioni</option>
+    <option value="miei" <%= filters.assegnati === 'miei' ? 'selected' : '' %>>Assegnati a me</option>
+    <option value="nessuno" <%= filters.assegnati === 'nessuno' ? 'selected' : '' %>>Non assegnati</option>
+  </select>
+  <button>Filtra</button>
+  <% if (filters.q || filters.stato || filters.tipo || filters.assegnati) { %><a href="/leads">Azzera</a><% } %>
+</form>
+
+<% if (leads.length === 0) { %>
+  <div class="card empty">
+    <% if (stats.totale === 0) { %>
+      Nessun lead presente.<% if (user.role === 'admin') { %> <a href="/admin/import">Importa il primo file Excel</a>.<% } %>
+    <% } else { %>Nessun lead corrisponde ai filtri.<% } %>
+  </div>
+<% } else { %>
+<div class="table-wrap">
+<table class="leads">
+  <thead>
+    <tr>
+      <th>Cliente</th><th>Recapiti</th><th>Tipo / Origine</th><th>Creato</th>
+      <th>Assegnato</th><th>Stato</th><th>Ultimo contatto</th>
+    </tr>
+  </thead>
+  <tbody>
+  <% leads.forEach(l => { %>
+    <tr onclick="location.href='/leads/<%= l.id %>'">
+      <td data-label="Cliente">
+        <a href="/leads/<%= l.id %>"><strong><%= l.cognome %> <%= l.nome %></strong></a>
+        <% if (l.gia_cliente === 'S') { %><span class="tag">già cliente</span><% } %>
+        <div class="muted small"><%= l.comune %><%= l.targa ? ' · ' + l.targa : '' %></div>
+      </td>
+      <td data-label="Recapiti">
+        <% if (l.cellulare) { %><a href="tel:<%= l.cellulare %>" onclick="event.stopPropagation()"><%= l.cellulare %></a><br><% } %>
+        <% if (l.email) { %><a class="small" href="mailto:<%= l.email %>" onclick="event.stopPropagation()"><%= l.email %></a><% } %>
+      </td>
+      <td data-label="Tipo"><%= l.lead_type %><div class="muted small"><%= l.origine %></div></td>
+      <td data-label="Creato"><%= fmtDate(l.data_creazione) %></td>
+      <td data-label="Assegnato"><%= l.assegnato_nome || '—' %></td>
+      <td data-label="Stato"><%- include('partials/esito', { esito: l.ult_esito }) %></td>
+      <td data-label="Ultimo contatto" class="small">
+        <% if (l.ult_data) { %>
+          <%= fmtDateTime(l.ult_data) %> · <%= MODALITA[l.ult_modalita] %><br>
+          <span class="muted"><%= l.ult_utente %><%= l.n_contatti > 1 ? ' · ' + l.n_contatti + ' contatti' : '' %></span>
+        <% } else { %>—<% } %>
+      </td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<% if (pages > 1) { %>
+<nav class="pager">
+  <% if (page > 1) { %><a href="<%= qs(page - 1) %>">‹ Precedente</a><% } %>
+  <span>Pagina <%= page %> di <%= pages %> (<%= total %> lead)</span>
+  <% if (page < pages) { %><a href="<%= qs(page + 1) %>">Successiva ›</a><% } %>
+</nav>
+<% } %>
+<% } %>
+<%- include('partials/footer') %>
