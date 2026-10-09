@@ -33,6 +33,15 @@ Installazione (una volta sola)
 4. Apri l'indirizzo nel browser: il portale chiede nome e cognome e la sede.
    Da lì funziona come la versione su claude.ai.
 
+Provarlo sul computer prima di metterlo online (facoltativo)
+-------------------------------------------------------------
+  Aprire index.html con un doppio clic NON funziona: la pagina ha bisogno di api.php,
+  che gira solo su un server con PHP. Per una prova locale su Windows:
+    1. Installa XAMPP (gratuito, da apachefriends.org) e avvia "Apache" dal pannello.
+    2. Copia la cartella portale-leads dentro C:\xampp\htdocs\
+    3. Apri nel browser: http://localhost/portale-leads/
+  I dati della prova restano sul tuo computer e non passano sul sito.
+
 Uso quotidiano
 --------------
   - Nome e cognome vengono chiesti una sola volta su ogni computer e compaiono

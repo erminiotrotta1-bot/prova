@@ -2034,6 +2034,11 @@ function startSubscriptions() {
 (async () => {
   if (window.LEADS_API) {
     // Versione per il sito dell'agenzia.
+    if (location.protocol === 'file:') {
+      showBanner("Questa pagina va aperta dal sito dell'agenzia (indirizzo https://…), non con un doppio clic dal computer: senza il sito non c'è un archivio dove salvare i leads. Per provarla sul computer usa un server PHP locale come XAMPP (vedi ISTRUZIONI.txt).", 'bad');
+      $('import-btn').disabled = true;
+      return;
+    }
     db = createSiteDb(window.LEADS_API);
     downloads = siteDownloads;
     startSubscriptions();
