@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250" width="360" height="250" role="img" aria-label="Allianz202 Network – Onde segnale">
+<title>Allianz202 Network – Onde segnale</title>
+<defs>
+  <linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1F4FA8"/><stop offset="1" stop-color="#2E6FD1"/></linearGradient>
+  <linearGradient id="gTeal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2A7FD4"/><stop offset="1" stop-color="#3CC2BE"/></linearGradient>
+  <linearGradient id="gIcon" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1F4FA8"/><stop offset="0.55" stop-color="#2A8AD6"/><stop offset="1" stop-color="#3CC2BE"/></linearGradient>
+</defs>
+
+<g fill="none" stroke-linecap="round" stroke="url(#gIcon)">
+  <path d="M118 74 Q180 18 250 56" stroke-width="12"/>
+  <path d="M132 98 Q186 54 238 84" stroke-width="12" opacity=".9"/>
+  <path d="M148 120 Q190 88 222 108" stroke-width="12" opacity=".8"/>
+</g>
+<circle cx="186" cy="134" r="9" fill="#1F4FA8"/>
+<text x="180" y="196" text-anchor="middle" font-family="Montserrat, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="46" fill="url(#gBlue)" letter-spacing="-0.5">Allianz<tspan font-size="30" font-weight="700" dx="5">202</tspan></text>
+<text x="180" y="240" text-anchor="middle" font-family="Montserrat, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="37" fill="url(#gTeal)" letter-spacing="4">NETWORK</text>
+</svg>
