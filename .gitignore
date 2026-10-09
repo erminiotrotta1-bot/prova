@@ -3,3 +3,5 @@ data/
 *.xls
 *.xlsx
 .env
+portale-leads/dati/archivio.php
+portale-leads.zip

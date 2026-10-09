@@ -1,0 +1,2113 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<style>html, body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }</style>
+<title>Leads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,600;6..12,700;6..12,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --c-pos: #4f9a2a; --c-lav: #2f86c8; --c-neg: #d0453f; --c-da: #dfe5eb;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f4f7fa;
+  --line: #d9dfe5;
+  --line-soft: #e9edf1;
+  --text: #1e2833;
+  --muted: #6a7682;
+  --brand: #273c91;        /* blu scuro: titoli, pulsanti principali */
+  --link: #0f6a9c;         /* blu petrolio: link e titoli di sezione */
+  --unread: #e3f2f9;       /* riga azzurra: lead da contattare */
+  --on-brand: #ffffff;
+  --t-attivi: #3aa3dc; --t-archivio: #5c6f86; --t-successi: #7cb342;
+  --ok: #3f7d20;   --ok-soft: #eaf5df;
+  --warn: #8a5a00; --warn-soft: #fdf1d6;
+  --bad: #c0282e;  --bad-soft: #fde7e8;
+  --info: #0f6a9c; --info-soft: #e3f2f9;
+  --shadow-tile: 0 2px 8px rgba(16, 38, 66, .12);
+  --shadow: 0 12px 32px rgba(16, 38, 66, .18);
+  --sans: "Nunito Sans", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html, body { background: #ffffff; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-size: .9em; }
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+
+/* Barra superiore */
+.topbar { border-bottom: 1px solid var(--line-soft); padding-inline: 16px; }
+.topbar-in { max-width: 1200px; margin: 0 auto; padding-block: 14px; display: flex; align-items: center; gap: 12px 22px; flex-wrap: wrap; }
+.wordmark { display: flex; align-items: center; gap: 14px; color: var(--brand); font-weight: 800; font-size: 1.45rem; letter-spacing: -.01em; margin: 0; }
+.wordmark svg { flex: none; }
+.spacer { flex: 1; }
+.sede-pick { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .9rem; }
+.sede-pick select { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 7px 10px; font-weight: 700; color: var(--brand); }
+.chip-me { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--muted); }
+.chip-me .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; color: var(--brand); font-weight: 800; font-size: .8rem; }
+.chip-me strong { color: var(--text); font-weight: 700; }
+.chip-me button { background: none; border: 0; color: var(--link); padding: 0; font-size: .85rem; font-weight: 600; }
+.btn { border: 1px solid var(--brand); background: var(--surface); color: var(--brand); padding: 8px 16px; border-radius: 4px; font-weight: 700; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--brand); color: var(--on-brand); }
+.btn.primary:hover { filter: brightness(1.12); }
+.btn:disabled { opacity: .55; cursor: default; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 26px 56px; display: flex; flex-direction: column; gap: 22px; }
+
+/* Ricerca centrata, solo linea inferiore */
+.search { width: min(820px, 100%); margin: 0 auto; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--muted); padding: 6px 4px; }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 1.05rem; padding: 6px 2px; outline: none; }
+.search input::placeholder { color: var(--muted); }
+.search:focus-within { border-bottom-color: var(--link); box-shadow: 0 1px 0 var(--link); }
+.search svg { color: var(--text); flex: none; }
+
+.notice { padding: 11px 16px; border-radius: 4px; background: var(--warn-soft); color: var(--warn); }
+.notice.ok { background: var(--ok-soft); color: var(--ok); }
+.notice.bad { background: var(--bad-soft); color: var(--bad); }
+.dupbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+/* Riquadri delle sezioni */
+.sections { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; width: min(900px, 100%); margin: 0 auto; }
+.section-tab { background: var(--surface); border: 0; border-bottom: 3px solid var(--tile); border-radius: 2px; box-shadow: var(--shadow-tile); padding: 18px 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text); transition: transform .15s ease, box-shadow .15s ease; }
+.section-tab:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16, 38, 66, .16); }
+.section-tab .n { font-size: 1.9rem; font-weight: 300; line-height: 1.1; color: var(--tile); font-variant-numeric: tabular-nums; }
+.section-tab .lbl { font-weight: 700; letter-spacing: .05em; font-size: .95rem; }
+.section-tab[data-sez="attivi"] { --tile: var(--t-attivi); }
+.section-tab[data-sez="archivio"] { --tile: var(--t-archivio); }
+.section-tab[data-sez="successi"] { --tile: var(--t-successi); }
+.section-tab[aria-selected="true"] { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--tile), var(--shadow-tile); }
+
+/* Intestazione dell'elenco */
+.list-head { display: flex; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.list-head h2 { margin: 0; color: var(--link); font-weight: 400; font-size: 1.75rem; line-height: 1.2; text-wrap: balance; }
+.section-hint { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+.tabs { display: flex; gap: 18px; flex-wrap: wrap; }
+.tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 4px 2px; color: var(--muted); font-weight: 600; display: flex; gap: 6px; align-items: baseline; }
+.tab strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.tab[aria-pressed="true"] { color: var(--link); border-bottom-color: var(--link); }
+.tab[aria-pressed="true"] strong { color: var(--link); }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.filters select { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 7px 10px; }
+
+/* Elenco a righe */
+.list { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+th { text-align: left; padding: 4px 16px; font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; white-space: nowrap; }
+td { padding: 12px 16px; vertical-align: top; background: var(--surface); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+td:first-child { border-left: 1px solid var(--line-soft); border-radius: 3px 0 0 3px; }
+td:last-child { border-right: 1px solid var(--line-soft); border-radius: 0 3px 3px 0; }
+tbody tr { cursor: pointer; box-shadow: 0 1px 3px rgba(16, 38, 66, .06); }
+tbody tr.unread td { background: var(--unread); border-color: transparent; }
+tbody tr:hover td { background: var(--surface-2); }
+tbody tr.unread:hover td { filter: brightness(.97); background: var(--unread); }
+td .name { font-weight: 700; }
+.tag { font-size: .7rem; font-weight: 700; background: var(--ok-soft); color: var(--ok); border-radius: 3px; padding: 1px 6px; margin-left: 6px; white-space: nowrap; }
+.tag.req { background: var(--info-soft); color: var(--info); box-shadow: inset 0 0 0 1px var(--info); }
+.sede-tag { font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.b-new { background: var(--surface); color: var(--link); box-shadow: inset 0 0 0 1px var(--link); }
+.b-warn { background: var(--warn-soft); color: var(--warn); }
+.b-info { background: var(--info-soft); color: var(--info); }
+.b-ok { background: var(--ok-soft); color: var(--ok); }
+.b-bad { background: var(--bad-soft); color: var(--bad); }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); display: flex; flex-direction: column; gap: 12px; align-items: center; border: 1px dashed var(--line); border-radius: 4px; }
+.empty h2 { color: var(--brand); margin: 0; font-size: 1.2rem; }
+.empty ol { text-align: left; margin: 0; padding-left: 20px; max-width: 520px; }
+
+@media (max-width: 720px) {
+  .sections { gap: 10px; }
+  .section-tab { padding: 12px 6px 10px; }
+  .section-tab .n { font-size: 1.5rem; }
+  .section-tab .lbl { font-size: .78rem; letter-spacing: .02em; text-align: center; }
+  .list-head h2 { font-size: 1.4rem; }
+  .filters { margin-left: 0; width: 100%; }
+  .filters select { flex: 1 1 0; min-width: 0; }
+  .tabs { gap: 12px; }
+  .tab { font-size: .86rem; }
+  thead { display: none; }
+  table { border-spacing: 0; }
+  table, tbody, tr, td { display: block; }
+  tbody tr { margin-bottom: 8px; border: 1px solid var(--line-soft); border-radius: 4px; overflow: hidden; }
+  td, td:first-child, td:last-child { border: 0; border-radius: 0; padding: 4px 14px; }
+  td:first-child { padding-top: 12px; }
+  td:last-child { padding-bottom: 12px; }
+  td.col-tipo, td.col-data { display: none; }
+}
+
+/* Scheda laterale */
+.scrim { position: fixed; inset: 0; background: rgba(10, 25, 45, .4); z-index: 10; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100%); background: var(--surface-2); z-index: 11; box-shadow: var(--shadow); overflow-y: auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.drawer-in { padding: 20px 22px 44px; display: flex; flex-direction: column; gap: 14px; }
+.d-head { display: flex; gap: 12px; align-items: flex-start; }
+.d-head h2 { margin: 0; font-size: 1.4rem; color: var(--brand); font-weight: 800; text-wrap: balance; }
+.d-head .close { margin-left: auto; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 5px 12px; font-weight: 600; }
+.box { background: var(--surface); border-radius: 3px; box-shadow: var(--shadow-tile); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.box.accent { border-bottom: 3px solid var(--t-attivi); }
+.box h3 { margin: 0; font-size: 1.05rem; color: var(--link); font-weight: 600; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+.copy { border: 1px solid var(--line); background: var(--surface-2); border-radius: 3px; padding: 0 7px; font-size: .75rem; margin-left: 6px; color: var(--link); font-weight: 600; }
+form.contact { display: flex; flex-direction: column; gap: 12px; }
+.modes { display: flex; gap: 8px; }
+.modes label { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); border-radius: 4px; padding: 10px; cursor: pointer; font-weight: 700; }
+.modes input { accent-color: var(--brand); }
+.modes label:has(input:checked) { border-color: var(--link); background: var(--unread); color: var(--brand); }
+.field { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.field select, .field textarea, .field input { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 8px 10px; font-weight: 400; }
+.form-msg { font-size: .9rem; }
+.form-msg.bad { color: var(--bad); }
+.form-msg.ok { color: var(--ok); }
+.history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.history li { border-left: 3px solid var(--line); padding-left: 12px; display: flex; flex-direction: column; gap: 4px; }
+.h-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: .85rem; }
+.h-meta .del { margin-left: auto; background: none; border: 0; color: var(--muted); font-size: .8rem; padding: 0; }
+.h-meta .del.armed { color: var(--bad); font-weight: 700; }
+.h-note { white-space: pre-wrap; }
+.dup { background: var(--warn-soft); color: var(--warn); border-radius: 4px; padding: 10px 12px; }
+.dup button { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; font-weight: 700; }
+.drawer .sede-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.drawer .sede-row select { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 5px 8px; }
+.arch-note { font-size: .88rem; color: var(--muted); }
+
+/* Navigazione tra schermate */
+.views { display: flex; gap: 4px; margin-left: 14px; }
+.views button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 6px 10px; font-weight: 700; color: var(--muted); }
+.views button[aria-current="page"] { color: var(--brand); border-bottom-color: var(--t-attivi); }
+
+/* Andamento sedi */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.kpi { background: var(--surface); border-bottom: 3px solid var(--tile); border-radius: 2px; box-shadow: var(--shadow-tile); padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 2px; }
+.kpi .v { font-size: 2.1rem; font-weight: 300; line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.kpi .l { font-weight: 700; letter-spacing: .03em; }
+.kpi .s { color: var(--muted); font-size: .85rem; }
+.period { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: .9rem; margin-left: auto; }
+.period select { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: 7px 10px; font-weight: 700; color: var(--brand); }
+.legend { display: flex; gap: 8px 18px; flex-wrap: wrap; font-size: .85rem; color: var(--text); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); display: inline-block; }
+.stats-wrap { overflow-x: auto; }
+table.stats { border-spacing: 0; min-width: 900px; }
+table.stats th { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+table.stats th.num, table.stats td.num { text-align: right; }
+table.stats td { background: none; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; padding: 12px; font-variant-numeric: tabular-nums; vertical-align: middle; }
+table.stats tbody tr { box-shadow: none; }
+table.stats tbody tr:hover td { background: var(--surface-2); }
+table.stats tfoot td { font-weight: 800; border-top: 2px solid var(--line); border-bottom: 0; padding: 12px; font-variant-numeric: tabular-nums; }
+table.stats .sede-name { font-weight: 700; color: var(--brand); }
+table.stats .pct { color: var(--muted); font-size: .82rem; margin-left: 4px; }
+.bar { display: flex; gap: 2px; height: 14px; width: 100%; min-width: 180px; }
+.bar > span { height: 100%; background: var(--c); }
+.bar > span:first-child { border-radius: 4px 0 0 4px; }
+.bar > span:last-child { border-radius: 0 4px 4px 0; }
+.bar > span:only-child { border-radius: 4px; }
+.bar.empty-bar { background: var(--line-soft); border-radius: 4px; }
+.tip { position: fixed; z-index: 30; pointer-events: none; background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-tile); border-radius: 4px; padding: 6px 10px; font-size: .85rem; white-space: nowrap; }
+.stats-note { color: var(--muted); font-size: .85rem; margin: 0; }
+@media (max-width: 720px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kpi .v { font-size: 1.6rem; }
+  .period { margin-left: 0; }
+  table.stats { display: table; min-width: 820px; }
+  table.stats thead { display: table-header-group; }
+  table.stats tbody { display: table-row-group; }
+  table.stats tfoot { display: table-footer-group; }
+  table.stats tr { display: table-row; margin: 0; border: 0; border-radius: 0; }
+  table.stats td, table.stats td:first-child, table.stats td:last-child { display: table-cell; padding: 10px; border-bottom: 1px solid var(--line-soft); }
+  table.stats td.col-tipo, table.stats td.col-data { display: table-cell; }
+}
+
+/* Storico import */
+.modal form.wide { width: min(640px, 100%); max-height: 88vh; overflow-y: auto; }
+.imports { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.imports li { display: flex; gap: 10px 16px; align-items: center; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.imports li:last-child { border-bottom: 0; }
+.imports .i-main { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.imports .i-title { font-weight: 700; color: var(--brand); overflow-wrap: anywhere; }
+.imports .i-meta { color: var(--muted); font-size: .85rem; }
+.imports .undone { color: var(--muted); font-size: .85rem; font-style: italic; }
+.imports .btn.armed { background: var(--bad); border-color: var(--bad); color: #fff; }
+
+/* Logo */
+.wordmark { gap: 18px !important; }
+.brandmark { display: inline-flex; align-items: center; gap: 12px; padding-right: 18px; position: relative; }
+.brandmark::after { content: ""; position: absolute; right: 0; top: 50%; height: 44px; margin-top: -22px; width: 1px;
+  background: linear-gradient(to bottom, transparent, var(--line) 20%, var(--line) 80%, transparent); }
+.bm-mark { height: 46px; width: auto; }
+.bm-word { height: 42px; width: auto; }
+.app-name { display: flex; flex-direction: column; gap: 3px; line-height: 1; }
+.app-eyebrow { margin-right: -.16em; font-size: .66rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.app-tb { display: flex; flex-direction: column; gap: 3px; }
+.app-title { font-size: 1.3rem; font-weight: 800; color: var(--brand); letter-spacing: -.01em; }
+.app-bar { position: relative; top: -6px; display: flex; gap: 2px; width: 100%; height: 6px; margin-top: 6px; padding: 0; border: 0; border-radius: 3px; overflow: hidden; background: var(--line-soft); cursor: pointer; transition: transform .15s ease; }
+.app-bar:hover { transform: scaleY(1.5); }
+.app-bar span { height: 100%; background: var(--c); transition: flex-grow .6s ease; }
+.app-bar.is-empty { background: linear-gradient(90deg, var(--brand) 0%, #2f6fb8 55%, var(--t-attivi) 100%); }
+.app-bar.is-empty::after { content: ""; position: absolute; top: 0; bottom: 0; left: -45%; width: 45%;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0));
+  animation: bar-sheen 4.5s ease-in-out infinite; }
+@keyframes bar-sheen { 0% { left: -45%; } 45%, 100% { left: 110%; } }
+@media (prefers-reduced-motion: reduce) { .app-bar.is-empty::after { animation: none; display: none; } .app-bar, .app-bar span { transition: none; } }
+.welcome-logo { height: 96px; width: auto; align-self: center; margin-bottom: 6px; }
+@media (max-width: 720px) {
+  .wordmark { gap: 12px !important; }
+  .brandmark { gap: 8px; padding-right: 12px; }
+  .brandmark::after { height: 34px; margin-top: -17px; }
+  .bm-mark { height: 32px; }
+  .bm-word { height: 29px; }
+  .app-eyebrow { font-size: .58rem; letter-spacing: .12em; margin-right: -.12em; }
+  .app-title { font-size: 1.05rem; }
+  .app-bar { top: -8px; }
+}
+
+/* Gruppo pulsanti di gestione */
+.subbar { flex-basis: 100%; display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
+.toolbar { display: flex; gap: 6px; flex-wrap: nowrap; }
+.toolbar .btn { padding: 8px 14px; white-space: nowrap; }
+@media (max-width: 720px) {
+  .toolbar { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .toolbar .btn { padding: 8px 4px; font-size: .88rem; }
+}
+
+/* Richiami di oggi */
+.recalls { background: var(--surface); border-radius: 3px; box-shadow: var(--shadow-tile); border-left: 4px solid #f2a33a; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.recalls-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.recalls-head h2 { margin: 0; font-size: 1.15rem; color: var(--brand); font-weight: 800; }
+.recalls-count { color: var(--muted); font-size: .88rem; font-weight: 600; }
+.recalls-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.recalls-list button { width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line-soft); padding: 9px 4px; display: grid; grid-template-columns: 70px minmax(0, 260px) 110px minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
+.recalls-list li:first-child button { border-top: 0; }
+.recalls-list button:hover { background: var(--surface-2); }
+.r-time { font-weight: 800; color: var(--brand); font-variant-numeric: tabular-nums; }
+.recalls-list .late .r-time { color: var(--bad); }
+.r-name { font-weight: 700; }
+.r-what { color: var(--muted); font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rich-tag { margin-top: 3px; display: inline-block; font-size: .75rem; font-weight: 700; color: #8a5a00; background: #fdf1d6; border-radius: 3px; padding: 1px 6px; }
+.rich-tag.late { color: var(--bad); background: var(--bad-soft); }
+.quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.quick button, .tpl-picks button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 11px; font-size: .82rem; font-weight: 600; color: var(--link); }
+.quick button:hover, .tpl-picks button:hover { border-color: var(--link); }
+@media (max-width: 720px) {
+  .recalls-list button { grid-template-columns: 70px 1fr; }
+  .r-phone, .r-what { grid-column: 2; }
+}
+
+/* Percorso di contatto */
+.guide { background: var(--surface); border-radius: 3px; box-shadow: var(--shadow-tile); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.guide-step { display: flex; gap: 12px; align-items: flex-start; }
+.g-num { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--surface-2); color: var(--muted); border: 2px solid var(--line); }
+.g-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.g-sub { color: var(--muted); font-size: .88rem; }
+.guide-step.active .g-num { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+.guide-step.active strong { color: var(--brand); }
+.guide-step.done .g-num { background: var(--ok); color: #fff; border-color: var(--ok); font-size: 0; }
+.guide-step.done .g-num::after { content: "✓"; font-size: .95rem; }
+.guide-step.done strong { color: var(--ok); }
+.guide-step.todo { opacity: .6; }
+.g-phone { margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.g-phone .num { font-family: var(--mono); font-size: 1.35rem; font-weight: 600; color: var(--brand); letter-spacing: .02em; }
+.g-phone a { font-size: .85rem; font-weight: 700; color: var(--link); }
+.mode-hint, .tpl-lock { margin: 0; font-size: .88rem; color: var(--warn); background: var(--warn-soft); border-radius: 4px; padding: 8px 10px; }
+.modes label:has(input:disabled) { opacity: .45; cursor: not-allowed; }
+#tpl-box.locked textarea, #tpl-box.locked .tpl-actions { opacity: .4; pointer-events: none; }
+
+/* Messaggi pronti */
+.tpl-picks { display: flex; gap: 6px; flex-wrap: wrap; }
+.tpl-picks button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.tpl-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tpl-actions a.btn { text-decoration: none; display: inline-block; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Ordinamento */
+.th-sort { background: none; border: 0; padding: 0; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
+.th-sort .arr { opacity: .35; font-size: .85em; }
+.th-sort:hover .arr { opacity: .8; }
+.th-sort.on { color: var(--link); }
+.th-sort.on .arr { opacity: 1; }
+
+/* Selezione */
+th.sel, td.sel { width: 44px; padding-right: 0 !important; }
+.sel input { width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer; margin: 2px 0 0; }
+tbody tr.selected td { background: var(--surface-2); box-shadow: inset 0 0 0 9999px rgba(10, 58, 122, .05); }
+.sel-bar { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); margin-top: 12px; display: flex; gap: 10px 14px; align-items: center; flex-wrap: wrap; background: var(--brand); color: var(--on-brand); padding: 10px 14px; border-radius: 4px; box-shadow: var(--shadow); z-index: 5; }
+.sel-bar #sel-count { font-weight: 700; flex: 1; }
+.sel-bar .btn { border-color: var(--on-brand); color: var(--on-brand); background: transparent; }
+.sel-bar .btn.danger.primary { background: var(--bad); border-color: var(--bad); color: #fff; }
+
+/* Eliminazione */
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn.danger.primary { background: var(--bad); color: #fff; }
+.del-count { color: var(--text) !important; font-weight: 700; }
+
+/* Finestre */
+#code-modal { z-index: 30; }
+.modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: rgba(10, 25, 45, .45); }
+.modal form { background: var(--surface); border-radius: 4px; border-bottom: 3px solid var(--t-attivi); padding: 24px; width: min(420px, 100%); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); }
+.modal h2 { margin: 0; font-size: 1.3rem; color: var(--brand); font-weight: 800; }
+.modal p { margin: 0; color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .drawer { animation: slide .18s ease-out; }
+  @keyframes slide { from { transform: translateX(24px); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-tab { transition: none; }
+}
+</style>
+<script>window.LEADS_API = 'api.php';</script>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="lg-mark" viewBox="832 297 257 223"><path transform="matrix(1,0,0,-1,1010.03,494.32)" d="M0 0H-35.47L8.60 76.34H44.07ZM-99.08 0-143.15 76.34H-60.40L-6.58 171.61H0L43.45 96.34H-31.58L-43.23 76.34H-14.49L-58.56 0ZM-99.08 171.61H-28.87L-71.89 96.34H-142.54ZM11.55 191.62H-110.63L-171.72 85.80-110.63-20.00H11.55L72.64 85.80Z" fill="#273c91"/></symbol>
+  <symbol id="lg-word" viewBox="582 561 695 219"><path transform="matrix(1,0,0,-1,1086.70,677.93)" d="M0 0C-.217 .288-.325 .651-.325 1.08-.325 1.30-.288 1.55-.217 1.84L.868 7.37C1.44 9.4 2.71 11.1 4.66 12.47L25.49 29.50C34.24 35.43 40.42 40.02 44.04 43.28 47.65 46.53 49.78 49.75 50.44 52.93 50.65 54.02 50.76 55.06 50.76 56.08 50.76 58.53 50.00 60.45 48.48 61.82 46.96 63.20 44.65 63.89 41.54 63.89 38 63.89 34.96 62.82 32.43 60.69 29.90 58.55 28.02 55.79 26.79 52.39 26.35 51.52 25.79 50.89 25.11 50.49 24.42 50.09 23.71 49.89 22.99 49.89H13.45C12.72 49.89 12.22 50.11 11.93 50.54 11.64 50.83 11.49 51.19 11.49 51.63 11.49 51.77 11.53 51.92 11.60 52.06 12.61 56.33 14.62 60.32 17.62 64.05 20.62 67.77 24.42 70.77 29.01 73.05 33.60 75.33 38.68 76.47 44.25 76.47 51.63 76.47 57.21 74.86 61.01 71.64 64.81 68.42 66.71 64.14 66.71 58.79 66.71 56.76 66.52 54.99 66.16 53.47 65.15 48.63 62.87 44.25 59.33 40.35 55.79 36.44 50.72 32.25 44.14 27.76L25.49 12.14H56.29C57.09 12.14 57.67 11.93 58.03 11.49 58.32 11.13 58.46 10.70 58.46 10.19 58.46 9.98 58.42 9.76 58.35 9.54L56.84 1.84C56.69 1.12 56.31 .505 55.70 0 55.08-.507 54.38-.759 53.58-.759H1.73C.939-.759 .361-.507 0 0" fill="#273c91"/><path transform="matrix(1,0,0,-1,1186.48,663.12)" d="M0 0C2.92 2.78 5.11 7.10 6.56 12.96 7.93 18.31 9.31 24.64 10.68 31.94 11.11 34.47 11.33 36.64 11.33 38.45 11.33 42.06 10.50 44.74 8.84 46.48 7.17 48.21 4.53 49.08 .922 49.08-3.70 49.08-7.44 47.67-10.30 44.85-13.16 42.03-15.31 37.73-16.75 31.94-18.49 25.14-19.86 18.82-20.88 12.96-21.31 10.36-21.53 8.08-21.53 6.12-21.53 2.58-20.71-.019-19.09-1.68-17.46-3.34-14.84-4.17-11.22-4.17-6.67-4.17-2.92-2.78 0 0M-30.58-10.84C-34.96-6.97-37.15-1.46-37.15 5.69-37.15 7.79-36.93 10.03-36.5 12.42-35.41 19.07-33.97 25.79-32.16 32.59-27.38 51.83-16.07 61.45 1.79 61.45 9.67 61.45 15.81 59.49 20.23 55.59 24.64 51.68 26.84 46.15 26.84 38.99 26.84 37.26 26.66 35.12 26.30 32.59 25.14 25.65 23.70 18.92 21.96 12.42 19.50 2.80 15.52-4.44 10.03-9.32 4.53-14.20-2.87-16.65-12.20-16.65-20.08-16.65-26.21-14.71-30.58-10.84" fill="#4f5453"/><path transform="matrix(1,0,0,-1,1204.59,677.93)" d="M0 0C-.217 .288-.325 .651-.325 1.08-.325 1.30-.288 1.55-.217 1.84L.868 7.37C1.44 9.4 2.71 11.1 4.66 12.47L25.49 29.50C34.24 35.43 40.42 40.02 44.04 43.28 47.65 46.53 49.78 49.75 50.44 52.93 50.65 54.02 50.76 55.06 50.76 56.08 50.76 58.53 50.00 60.45 48.48 61.82 46.96 63.20 44.65 63.89 41.54 63.89 38 63.89 34.96 62.82 32.43 60.69 29.90 58.55 28.02 55.79 26.79 52.39 26.35 51.52 25.79 50.89 25.11 50.49 24.42 50.09 23.71 49.89 22.99 49.89H13.45C12.72 49.89 12.22 50.11 11.93 50.54 11.64 50.83 11.49 51.19 11.49 51.63 11.49 51.77 11.53 51.92 11.60 52.06 12.61 56.33 14.62 60.32 17.62 64.05 20.62 67.77 24.42 70.77 29.01 73.05 33.60 75.33 38.68 76.47 44.25 76.47 51.63 76.47 57.21 74.86 61.01 71.64 64.81 68.42 66.71 64.14 66.71 58.79 66.71 56.76 66.52 54.99 66.16 53.47 65.15 48.63 62.87 44.25 59.33 40.35 55.79 36.44 50.72 32.25 44.14 27.76L25.49 12.14H56.29C57.09 12.14 57.67 11.93 58.03 11.49 58.32 11.13 58.46 10.70 58.46 10.19 58.46 9.98 58.42 9.76 58.35 9.54L56.84 1.84C56.69 1.12 56.31 .505 55.70 0 55.08-.507 54.38-.759 53.58-.759H1.73C.939-.759 .361-.507 0 0" fill="#273c91"/><path transform="matrix(1,0,0,-1,623.27,640.53)" d="M0 0H34.22L17.11 48.58ZM49.04-38.17C47.28-38.17 46.29-37.53 45.72-36.05L39.17-18.91H-5.11L-11.50-36.06C-11.89-37.09-12.62-38.17-14.97-38.17H-34.22C-34.46-38.17-34.78-38.11-35.21-37.68-35.64-37.25-35.70-36.92-35.70-36.69-35.70-36.07-35.64-35.87-35.63-35.86L1.16 64.66 1.18 64.76C1.4 65.62 1.86 66.33 2.59 66.92 3.31 67.49 4.27 67.77 5.53 67.77H28.69C29.95 67.77 30.91 67.49 31.63 66.91 32.36 66.32 32.82 65.62 33.04 64.76L33.06 64.67 69.68-35.79 69.91-36.84C69.89-37.06 69.78-37.34 69.44-37.68 69.10-38.02 68.75-38.17 68.29-38.17Z" fill="#273c91"/><path transform="matrix(1,0,0,-1,705.73,678.70)" d="M0 0C-.563 0-1.01 .198-1.45 .644-1.90 1.08-2.10 1.53-2.10 2.10V105.40C-2.10 106.05-1.91 106.51-1.50 106.9-1.05 107.31-.58 107.50 0 107.50H18.47C19.33 107.50 19.76 107.18 20.00 106.94 20.24 106.70 20.57 106.27 20.57 105.40V2.10C20.57 1.23 20.24 .809 20.00 .565 19.76 .323 19.34 0 18.47 0Z" fill="#273c91"/><path transform="matrix(1,0,0,-1,746.66,678.70)" d="M0 0C-.563 0-1.01 .198-1.45 .644-1.90 1.08-2.10 1.54-2.10 2.10V105.40C-2.10 106.05-1.91 106.51-1.50 106.90-1.05 107.31-.58 107.50 0 107.50H18.47C19.33 107.50 19.76 107.18 20.00 106.94 20.24 106.70 20.57 106.27 20.57 105.40V2.10C20.57 1.23 20.24 .809 20.00 .565 19.76 .323 19.34 0 18.47 0Z" fill="#273c91"/><path transform="matrix(1,0,0,-1,787.44,585.57)" d="M0 0C-.873 0-1.29 .322-1.53 .563-1.78 .809-2.10 1.23-2.10 2.10V16.18C-2.10 17.06-1.77 17.48-1.53 17.72-1.29 17.96-.871 18.29 0 18.29H18.78C19.65 18.29 20.07 17.96 20.32 17.72 20.56 17.48 20.88 17.05 20.88 16.18V2.10C20.88 1.23 20.56 .809 20.31 .565 20.07 .323 19.65 0 18.78 0ZM.156-93.13C-.717-93.13-1.13-92.80-1.37-92.56-1.62-92.32-1.94-91.9-1.94-91.02V-17.46C-1.94-16.59-1.62-16.16-1.38-15.92-1.13-15.68-.715-15.36 .156-15.36H18.62C19.49-15.36 19.92-15.68 20.16-15.92 20.40-16.16 20.72-16.59 20.72-17.46V-91.02C20.72-91.60 20.53-92.08 20.11-92.53 19.73-92.94 19.27-93.13 18.62-93.13Z" fill="#273c91"/><path transform="matrix(1,0,0,-1,972.45,678.70)" d="M0 0C-.563 0-1.01 .198-1.45 .644-1.90 1.08-2.10 1.53-2.10 2.10V44.83C-2.10 50.17-3.47 54.4-6.16 57.39-8.91 60.43-12.84 61.98-17.84 61.98-22.72 61.98-26.64 60.44-29.49 57.42-32.31 54.42-33.74 50.18-33.74 44.83V2.10C-33.74 1.52-33.93 1.04-34.35 .598-34.73 .186-35.19 0-35.84 0H-55.40C-56.28 0-56.70 .322-56.94 .563-57.19 .809-57.51 1.23-57.51 2.10V75.66C-57.51 76.53-57.18 76.96-56.94 77.20-56.70 77.44-56.28 77.77-55.40 77.77H-37.40C-36.72 77.77-36.19 77.57-35.74 77.16-35.33 76.77-35.15 76.31-35.15 75.66V64.64L-31.93 68.57C-29.30 71.79-25.85 74.41-21.69 76.37-17.51 78.33-12.69 79.33-7.35 79.33 1.37 79.33 8.26 76.47 13.69 70.60 19.08 64.76 21.82 56.41 21.82 45.77V2.10C21.82 1.52 21.63 1.04 21.21 .598 20.82 .186 20.36 0 19.72 0Z" fill="#273c91"/><path transform="matrix(1,0,0,-1,1006.62,678.70)" d="M0 0C-.563 0-1.01 .198-1.45 .644-1.90 1.08-2.10 1.53-2.10 2.10V14.31C-2.10 15.70-1.45 17.02-.128 18.35L39.34 61.19H1.40C.72 61.19 .193 61.39-.251 61.80-.666 62.19-.85 62.65-.85 63.30V75.66C-.85 76.31-.666 76.77-.251 77.16 .193 77.57 .722 77.77 1.40 77.77H64.33C65.19 77.77 65.62 77.44 65.87 77.20 66.10 76.96 66.43 76.53 66.43 75.66V62.36C66.43 61.35 65.84 60.18 64.68 58.86L26.27 16.57H67.45C68.14 16.57 68.67 16.37 69.12 15.96 69.53 15.57 69.71 15.11 69.71 14.46V2.10C69.71 1.45 69.53 .994 69.12 .61 68.67 .193 68.14 0 67.45 0Z" fill="#273c91"/><path transform="matrix(1,0,0,-1,858.89,644.13)" d="M0 0C-10.34-1.83-15.58-5.75-15.58-11.64-15.58-14.82-14.17-17.48-11.51-19.31-9.02-21.03-5.99-21.90-2.50-21.90 2.79-21.90 7.15-20.13 10.47-16.64 13.76-13.18 15.43-8.12 15.43-1.62V2.72ZM-9.85-36.12C-15.09-36.12-19.91-35.10-24.19-33.09-28.41-31.10-31.75-28.35-34.11-24.93-36.44-21.56-37.63-17.77-37.63-13.67-37.63-7.02-34.97-1.81-29.51 2.24-23.88 6.42-15.96 9.37-5.96 10.98L13.76 13.98C14.54 14.10 15.11 14.77 15.11 15.55V17.93C15.11 22.33 14.12 25.69 12.15 27.90 10.13 30.18 6.83 31.33 2.35 31.33-.336 31.33-2.62 30.84-4.44 29.86-6.14 28.96-7.88 27.72-9.64 26.18-10.86 25.13-12.31 23.89-13.02 23.27-13.31 23.02-13.67 22.88-14.06 22.88L-21.64 22.88C-23.58 22.88-25.52 22.88-27.45 22.88-28.11 22.88-28.77 22.88-29.43 22.88-30.05 22.88-30.78 22.79-31.34 23.03-31.64 23.16-31.90 23.38-32.04 23.67-32.19 23.97-32.19 24.33-32.15 24.66-31.78 27.73-30.24 30.38-28.38 32.79-25.91 35.99-22.03 38.81-16.85 41.17-11.63 43.56-5.07 44.77 2.66 44.77 14.96 44.77 24.13 42.06 29.92 36.72 35.74 31.34 38.57 24.27 38.57 15.12V-32.46C38.57-33.04 38.38-33.51 37.96-33.96 37.57-34.37 37.11-34.56 36.47-34.56H18.31C17.75-34.56 17.30-34.36 16.85-33.92 16.41-33.47 16.21-33.02 16.21-32.46V-26.28C16.21-24.73 14.22-24.10 13.33-25.36L12.92-25.93C10.81-28.90 7.80-31.37 3.97-33.26 .123-35.16-4.53-36.12-9.85-36.12" fill="#273c91"/><path transform="matrix(1,0,0,-1,783.46,765.11)" d="M0 0C1.87 1.55 3.22 3.91 4.02 7.10 4.86 10.70 5.52 13.80 5.98 16.41 6.17 17.37 6.26 18.40 6.26 19.52 6.26 23.73 4.04 25.84-.402 25.84-3.04 25.84-5.30 25.07-7.18 23.51-9.06 21.96-10.38 19.59-11.15 16.41-11.99 13.15-12.66 10.05-13.16 7.10-13.35 6.14-13.45 5.10-13.45 3.99-13.45 1.81-12.89 .211-11.78-.805-10.67-1.82-9.00-2.32-6.78-2.32-4.14-2.32-1.87-1.55 0 0M-17.79-5.80C-20.46-3.71-21.79-.68-21.79 3.30-21.79 4.45-21.67 5.62-21.44 6.81-20.94 9.65-20.25 12.92-19.37 16.64-18.11 21.85-15.85 25.79-12.59 28.46-9.33 31.12-5.09 32.45 .115 32.45 4.44 32.45 7.93 31.37 10.57 29.20 13.22 27.04 14.54 23.96 14.54 19.98 14.54 18.75 14.45 17.64 14.26 16.64 13.76 13.61 13.07 10.34 12.19 6.81 10.88 1.52 8.61-2.42 5.37-5.03 2.13-7.63-2.08-8.94-7.30-8.94-11.63-8.94-15.13-7.89-17.79-5.80" fill="#4f5453"/><path transform="matrix(1,0,0,-1,799.93,773.07)" d="M0 0C-.211 .267-.279 .594-.201 .976L5.54 28.05C5.62 28.44 5.82 28.77 6.15 29.06 6.47 29.35 6.83 29.49 7.21 29.49H11.87C12.25 29.49 12.56 29.36 12.79 29.09 12.94 28.9 13.02 28.67 13.02 28.40 13.02 28.28 13.00 28.17 12.96 28.05L12.44 25.7C14.36 28.23 17.25 29.49 21.13 29.49H23.94C24.37 29.49 24.67 29.36 24.86 29.09 25.02 28.9 25.09 28.67 25.09 28.40 25.09 28.32 25.07 28.23 25.04 28.11L24.17 23.97C24.10 23.55 23.9 23.21 23.57 22.97 23.24 22.72 22.89 22.59 22.51 22.59H18.02C16.18 22.59 14.64 22.07 13.39 21.04 12.15 20.00 11.33 18.59 10.95 16.78L7.56 .976C7.48 .555 7.28 .219 6.95-.029 6.63-.279 6.27-.403 5.89-.403H.891C.508-.403 .21-.269 0 0" fill="#4f5453"/><path transform="matrix(1,0,0,-1,822.32,773.07)" d="M0 0C-.153 .19-.23 .421-.23 .69-.23 .765-.21 .862-.172 .976L.518 4.25C.671 4.82 .959 5.30 1.38 5.69L19.89 23.51H6.49C6.07 23.51 5.76 23.65 5.57 23.91 5.42 24.10 5.34 24.34 5.34 24.60 5.34 24.68 5.36 24.78 5.40 24.89L6.09 28.11C6.17 28.53 6.37 28.87 6.69 29.12 7.02 29.37 7.37 29.49 7.76 29.49H29.55C29.97 29.49 30.28 29.36 30.47 29.09 30.62 28.9 30.70 28.67 30.70 28.40 30.70 28.32 30.68 28.23 30.64 28.11L29.95 24.60C29.84 24.07 29.55 23.63 29.09 23.28L10.81 5.57H25.64C26.06 5.57 26.37 5.44 26.56 5.17 26.71 4.98 26.79 4.75 26.79 4.48 26.79 4.40 26.77 4.31 26.73 4.19L26.04 .976C25.97 .594 25.77 .267 25.47 0 25.16-.269 24.81-.403 24.43-.403H.92C.538-.403 .231-.269 0 0" fill="#4f5453"/><path transform="matrix(1,0,0,-1,872.92,765.74)" d="M0 0C1.45 1.43 2.43 3.17 2.93 5.20 3.31 6.66 3.62 8.13 3.85 9.63 3.96 10.28 4.02 10.89 4.02 11.47 4.02 13.00 3.61 14.24 2.78 15.17 1.96 16.11 .67 16.58-1.09 16.58-4.92 16.58-7.62 14.03-9.19 8.94-9.54 7.79-9.77 6.64-9.89 5.49-10.04 4.26-10.11 3.38-10.11 2.84-10.11-.488-8.58-2.15-5.52-2.15-3.29-2.15-1.45-1.43 0 0M-15.58-5.52C-17.26-3.66-18.11-1.14-18.11 2.04-18.11 2.99-18.01 4.11-17.82 5.37L-17.01 9.11C-15.90 13.29-14.14 16.60-11.72 19.06-9.31 21.51-6.11 22.74-2.12 22.74 .095 22.74 1.84 22.40 3.10 21.73 4.37 21.06 5.40 20.11 6.21 18.88L6.61 20.78C6.68 21.20 6.88 21.54 7.18 21.79 7.49 22.04 7.83 22.16 8.22 22.16H12.76C13.18 22.16 13.51 22.03 13.74 21.76 13.89 21.57 13.97 21.34 13.97 21.07 13.97 20.99 13.95 20.89 13.91 20.78L8.10-6.35C8.03-6.77 7.83-7.11 7.53-7.35 7.22-7.60 6.88-7.73 6.49-7.73H1.95C1.53-7.73 1.21-7.59 1.00-7.33 .795-7.06 .728-6.73 .805-6.35L1.26-4.22C-.115-5.60-1.48-6.63-2.84-7.30-4.20-7.97-5.96-8.30-8.10-8.30-11.40-8.30-13.89-7.38-15.58-5.52" fill="#4f5453"/><path transform="matrix(1,0,0,-1,909.17,748.99)" d="M0 0C1.02 .92 1.53 2.04 1.53 3.37 1.53 4.7 1.05 5.78 .102 6.61-.852 7.45-2.02 7.87-3.42 7.87-4.78 7.87-5.95 7.45-6.92 6.61-7.89 5.78-8.38 4.68-8.38 3.32-8.38 2.40-8.11 1.48-7.58 .588-7.06-.317-6.06-1.53-4.6-3.06-2.55-1.94-1.02-.92 0 0M.154-20.03C1.51-19.45 2.75-18.60 3.88-17.48L-5.67-8.17C-7.41-9.16-8.74-10.17-9.68-11.19-10.62-12.21-11.09-13.42-11.09-14.82-11.09-16.69-10.39-18.17-8.99-19.26-7.59-20.36-5.92-20.90-3.98-20.90-2.58-20.90-1.21-20.61 .154-20.03M-10.14-23.71C-11.93-22.86-13.32-21.67-14.31-20.13-15.29-18.60-15.79-16.86-15.79-14.92-15.79-12.77-15.16-10.94-13.90-9.43-12.64-7.91-10.86-6.49-8.58-5.16-10.18-3.46-11.32-1.96-11.98-.692-12.64 .588-12.98 1.94-12.98 3.37-12.98 4.90-12.59 6.31-11.80 7.59-11.02 8.86-9.89 9.88-8.43 10.65-6.96 11.42-5.29 11.80-3.42 11.80-1.58 11.80 .051 11.43 1.48 10.70 2.91 9.97 4.02 8.96 4.80 7.69 5.58 6.41 5.98 4.99 5.98 3.42 5.98 1.34 5.31-.392 3.98-1.79 2.65-3.18 .732-4.60-1.78-6.03L6.9-14.56C8.26-12.28 9.18-9.69 9.65-6.79 9.69-6.49 9.80-6.24 9.99-6.05 10.17-5.87 10.42-5.77 10.73-5.77H12.98C13.28-5.77 13.54-5.87 13.74-6.08 13.95-6.28 14.05-6.54 14.05-6.85 14.02-8.34 13.63-10.06 12.90-11.98 12.17-13.91 11.17-15.75 9.91-17.53L15.12-22.74C15.43-23.05 15.58-23.30 15.58-23.51 15.58-24.15 15.24-24.48 14.56-24.48H11.70C11.05-24.48 10.59-24.31 10.32-23.97L6.95-20.64C3.98-23.54 .34-24.99-3.98-24.99-6.30-24.99-8.35-24.56-10.14-23.71" fill="#4f5453"/><path transform="matrix(1,0,0,-1,936.05,773.07)" d="M0 0C-.154 .19-.23 .421-.23 .69-.23 .765-.211 .862-.173 .976L6.61 32.77H-4.02C-4.44 32.77-4.76 32.90-4.97 33.17-5.18 33.44-5.25 33.77-5.17 34.15L-4.25 38.40C-4.17 38.82-3.98 39.17-3.68 39.44-3.37 39.71-3.01 39.84-2.58 39.84H26.73C27.15 39.84 27.48 39.71 27.71 39.44 27.86 39.25 27.94 39.01 27.94 38.75 27.94 38.63 27.92 38.52 27.88 38.40L26.96 34.15C26.88 33.73 26.68 33.39 26.36 33.14 26.03 32.89 25.68 32.77 25.29 32.77H14.66L7.87 .976C7.80 .555 7.60 .219 7.30-.029 6.99-.279 6.63-.403 6.21-.403H.92C.497-.403 .192-.269 0 0" fill="#4f5453"/><path transform="matrix(1,0,0,-1,958.33,773.07)" d="M0 0C-.211 .267-.279 .594-.202 .976L5.54 28.05C5.62 28.44 5.82 28.77 6.15 29.06 6.47 29.35 6.83 29.49 7.21 29.49H11.87C12.25 29.49 12.56 29.36 12.79 29.09 12.94 28.9 13.02 28.67 13.02 28.40 13.02 28.28 13.00 28.17 12.96 28.05L12.44 25.7C14.36 28.23 17.25 29.49 21.13 29.49H23.94C24.36 29.49 24.67 29.36 24.86 29.09 25.02 28.9 25.09 28.67 25.09 28.40 25.09 28.32 25.07 28.23 25.04 28.11L24.17 23.97C24.1 23.55 23.9 23.21 23.57 22.97 23.24 22.72 22.89 22.59 22.51 22.59H18.02C16.18 22.59 14.64 22.07 13.39 21.04 12.15 20.00 11.33 18.59 10.95 16.78L7.56 .976C7.48 .555 7.28 .219 6.95-.029 6.63-.279 6.27-.403 5.89-.403H.891C.507-.403 .209-.269 0 0" fill="#4f5453"/><path transform="matrix(1,0,0,-1,1000.90,766.43)" d="M0 0C1.45 1.28 2.49 3.17 3.10 5.66 3.37 6.73 3.69 8.23 4.08 10.14 4.23 11.29 4.31 12.10 4.31 12.56 4.31 16.01 2.64 17.73-.69 17.73-2.76 17.73-4.51 17.08-5.95 15.78-7.38 14.48-8.41 12.60-9.02 10.14-9.44 8.80-9.77 7.31-10.00 5.66-10.15 4.85-10.23 3.99-10.23 3.07-10.23-.259-8.58-1.92-5.29-1.92-3.21-1.92-1.45-1.28 0 0M-14.89-4.80C-17.03-2.92-18.11-.375-18.11 2.84-18.11 3.38-18.03 4.22-17.88 5.37-17.53 7.40-17.17 9.09-16.78 10.43-15.75 14.49-13.83 17.68-11.03 19.97-8.24 22.28-4.60 23.42-.115 23.42 3.75 23.42 6.77 22.49 8.94 20.61 11.10 18.73 12.19 16.16 12.19 12.90 12.19 12.40 12.11 11.58 11.96 10.43 11.38 7.67 11.02 5.98 10.86 5.37 9.79 1.27 7.87-1.91 5.11-4.19 2.35-6.47-1.30-7.61-5.86-7.61-9.73-7.61-12.74-6.68-14.89-4.80" fill="#4f5453"/><path transform="matrix(1,0,0,-1,1022.12,771.67)" d="M0 0C-1.49 1.20-2.24 3.01-2.24 5.43-2.24 6.58-2.10 7.75-1.84 8.94L.978 21.99H-3.56C-3.94 21.99-4.24 22.13-4.45 22.42-4.66 22.71-4.73 23.04-4.65 23.42L-3.96 26.70C-3.89 27.09-3.69 27.41-3.36 27.68-3.03 27.95-2.66 28.08-2.24 28.08H2.24L4.31 37.63C4.38 38.05 4.57 38.38 4.88 38.63 5.19 38.88 5.53 39.01 5.92 39.01H10.58C11.00 39.01 11.32 38.87 11.55 38.61 11.71 38.41 11.78 38.18 11.78 37.91 11.78 37.84 11.76 37.74 11.72 37.63L9.66 28.08H16.84C17.26 28.08 17.57 27.95 17.76 27.68 17.92 27.49 17.99 27.26 17.99 26.99 17.99 26.91 17.97 26.82 17.93 26.70L17.25 23.42C17.17 23.00 16.97 22.66 16.64 22.39 16.32 22.12 15.96 21.99 15.58 21.99H8.39L5.74 9.51C5.48 8.32 5.34 7.42 5.34 6.81 5.34 6.04 5.56 5.47 6.00 5.08 6.44 4.70 7.18 4.51 8.22 4.51H12.36C12.74 4.51 13.05 4.37 13.28 4.11 13.43 3.91 13.51 3.68 13.51 3.42 13.51 3.34 13.49 3.24 13.45 3.13L12.70-.432C12.63-.853 12.42-1.18 12.10-1.43 11.77-1.68 11.42-1.81 11.03-1.81H6.95C3.81-1.81 1.49-1.20 0 0" fill="#4f5453"/><path transform="matrix(1,0,0,-1,1046.44,771.67)" d="M0 0C-1.49 1.20-2.24 3.01-2.24 5.43-2.24 6.58-2.10 7.75-1.84 8.94L.978 21.99H-3.56C-3.94 21.99-4.24 22.13-4.45 22.42-4.66 22.71-4.73 23.04-4.65 23.42L-3.96 26.70C-3.89 27.09-3.69 27.41-3.36 27.68-3.03 27.95-2.66 28.08-2.24 28.08H2.24L4.31 37.63C4.38 38.05 4.57 38.38 4.88 38.63 5.19 38.88 5.53 39.01 5.92 39.01H10.58C11.00 39.01 11.32 38.87 11.55 38.61 11.71 38.41 11.78 38.18 11.78 37.91 11.78 37.84 11.76 37.74 11.72 37.63L9.66 28.08H16.84C17.26 28.08 17.57 27.95 17.76 27.68 17.92 27.49 17.99 27.26 17.99 26.99 17.99 26.91 17.97 26.82 17.93 26.70L17.25 23.42C17.17 23.00 16.97 22.66 16.64 22.39 16.32 22.12 15.96 21.99 15.58 21.99H8.39L5.74 9.51C5.48 8.32 5.34 7.42 5.34 6.81 5.34 6.04 5.56 5.47 6.00 5.08 6.44 4.70 7.18 4.51 8.22 4.51H12.36C12.74 4.51 13.05 4.37 13.28 4.11 13.43 3.91 13.51 3.68 13.51 3.42 13.51 3.34 13.49 3.24 13.45 3.13L12.70-.432C12.63-.853 12.42-1.18 12.10-1.43 11.77-1.68 11.42-1.81 11.03-1.81H6.95C3.81-1.81 1.49-1.20 0 0" fill="#4f5453"/><path transform="matrix(1,0,0,-1,1083.24,765.74)" d="M0 0C1.45 1.43 2.43 3.17 2.93 5.20 3.31 6.66 3.62 8.13 3.85 9.63 3.96 10.28 4.02 10.89 4.02 11.47 4.02 13.00 3.61 14.24 2.78 15.17 1.96 16.11 .67 16.58-1.09 16.58-4.92 16.58-7.62 14.03-9.19 8.94-9.54 7.79-9.77 6.64-9.88 5.49-10.04 4.26-10.11 3.38-10.11 2.84-10.11-.488-8.58-2.15-5.51-2.15-3.29-2.15-1.45-1.43 0 0M-15.58-5.52C-17.26-3.66-18.11-1.14-18.11 2.04-18.11 2.99-18.01 4.11-17.82 5.37L-17.01 9.11C-15.90 13.29-14.14 16.60-11.72 19.06-9.31 21.51-6.11 22.74-2.12 22.74 .096 22.74 1.84 22.40 3.10 21.73 4.37 21.06 5.40 20.11 6.21 18.88L6.61 20.78C6.68 21.20 6.88 21.54 7.18 21.79 7.49 22.04 7.83 22.16 8.22 22.16H12.76C13.18 22.16 13.51 22.03 13.74 21.76 13.89 21.57 13.97 21.34 13.97 21.07 13.97 20.99 13.95 20.89 13.91 20.78L8.10-6.35C8.03-6.77 7.83-7.11 7.53-7.35 7.22-7.60 6.88-7.73 6.49-7.73H1.95C1.53-7.73 1.21-7.59 1.00-7.33 .795-7.06 .728-6.73 .805-6.35L1.26-4.22C-.115-5.60-1.48-6.63-2.84-7.30-4.20-7.97-5.96-8.30-8.10-8.30-11.40-8.30-13.89-7.38-15.58-5.52" fill="#4f5453"/></symbol>
+</defs></svg>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <h1 class="wordmark">
+      <span class="brandmark" role="img" aria-label="Allianz 202 Orza &amp; Trotta">
+        <svg class="bm-mark" viewBox="832 297 257 223" aria-hidden="true"><use href="#lg-mark" x="832" y="297" width="257" height="223"/></svg>
+        <svg class="bm-word" viewBox="582 561 695 219" aria-hidden="true"><use href="#lg-word" x="582" y="561" width="695" height="219"/></svg>
+      </span>
+      <span class="app-name">
+        <span class="app-eyebrow">Portale agenzia</span>
+        <span class="app-tb"><span class="app-title">Leads</span><button type="button" class="app-bar is-empty" id="app-bar" aria-label="Andamento complessivo dei leads"></button></span>
+      </span>
+    </h1>
+    <nav class="views" aria-label="Schermate">
+      <button type="button" data-view="lead" aria-current="page">Leads</button>
+      <button type="button" data-view="stats">Andamento sedi</button>
+    </nav>
+    <span class="spacer"></span>
+    <span class="chip-me" id="me" hidden><span class="avatar" id="me-initials"></span><strong id="me-name"></strong> <button type="button" id="me-change">cambia</button></span>
+    <div class="subbar">
+      <label class="sede-pick">Sede
+        <select id="sede"></select>
+      </label>
+      <span class="spacer"></span>
+      <div class="toolbar" role="group" aria-label="Gestione leads">
+        <button class="btn" type="button" id="history-btn">Storico</button>
+        <button class="btn danger" type="button" id="del-btn">Elimina</button>
+        <button class="btn" type="button" id="export-btn">Esporta</button>
+        <button class="btn primary" type="button" id="import-btn">Importa</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" id="view-lead">
+  <label class="search">
+    <input type="search" id="q" placeholder="Cerca per nome, telefono, email, targa…" aria-label="Cerca leads">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2" stroke-linecap="round"/></svg>
+  </label>
+
+  <div class="notice" id="banner" hidden></div>
+  <section class="recalls" id="recalls" hidden>
+    <div class="recalls-head">
+      <h2>Richiami di oggi</h2>
+      <span class="recalls-count" id="recalls-count"></span>
+    </div>
+    <ol class="recalls-list" id="recalls-list"></ol>
+  </section>
+
+  <div class="notice dupbar" id="dup-banner" hidden>
+    <span id="dup-text"></span>
+    <button class="btn" type="button" id="dup-merge">Unisci</button>
+  </div>
+
+  <div class="sections" role="tablist" aria-label="Sezioni">
+    <button class="section-tab" role="tab" type="button" data-sez="attivi" aria-selected="true"><span class="n" id="n-attivi">0</span><span class="lbl">Da lavorare</span></button>
+    <button class="section-tab" role="tab" type="button" data-sez="archivio" aria-selected="false"><span class="n" id="n-archivio">0</span><span class="lbl">Archivio generale</span></button>
+    <button class="section-tab" role="tab" type="button" data-sez="successi" aria-selected="false"><span class="n" id="n-successi">0</span><span class="lbl">Contatti con successo</span></button>
+  </div>
+
+  <section>
+    <div class="list-head">
+      <div class="lh-title">
+      <div>
+        <h2 id="section-title">Da lavorare</h2>
+        <p class="section-hint" id="section-hint"></p>
+      </div>
+      </div>
+      <div class="tabs" id="tabs" role="group" aria-label="Stato">
+        <button class="tab" type="button" data-stato="tutti" aria-pressed="true">Tutti <strong id="n-tutti">0</strong></button>
+        <button class="tab" type="button" data-stato="da" aria-pressed="false">Da contattare <strong id="n-da">0</strong></button>
+        <button class="tab" type="button" data-stato="fatti" aria-pressed="false">In lavorazione <strong id="n-fatti">0</strong></button>
+      </div>
+      <div class="filters">
+        <select id="f-esito" aria-label="Ultimo esito"><option value="">Qualsiasi esito</option></select>
+        <select id="f-tipo" aria-label="Tipo di lead"><option value="">Tutti i tipi</option></select>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+    <div class="sel-bar" id="sel-bar" hidden>
+      <span id="sel-count"></span>
+      <button type="button" class="btn" id="sel-clear">Deseleziona</button>
+      <button type="button" class="btn danger primary" id="sel-delete">Elimina selezionati</button>
+    </div>
+  </section>
+</div>
+
+<div class="wrap" id="view-stats" hidden>
+  <div class="list-head">
+    <div>
+      <h2>Andamento sedi</h2>
+      <p class="section-hint">Quanti leads ogni sede ha gestito e come si sono chiusi, in base all'ultimo esito registrato.</p>
+    </div>
+    <label class="period">Leads ricevuti
+      <select id="period">
+        <option value="all">Sempre</option>
+        <option value="month">Questo mese</option>
+        <option value="prev">Mese scorso</option>
+        <option value="30">Ultimi 30 giorni</option>
+        <option value="90">Ultimi 90 giorni</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi" style="--tile: var(--t-archivio)"><span class="v" id="k-tot">0</span><span class="l">Leads ricevuti</span><span class="s" id="k-tot-s">&nbsp;</span></div>
+    <div class="kpi" style="--tile: var(--c-lav)"><span class="v" id="k-gest">0</span><span class="l">Gestiti</span><span class="s" id="k-gest-s">&nbsp;</span></div>
+    <div class="kpi" style="--tile: var(--c-pos)"><span class="v" id="k-pos">0</span><span class="l">Chiusi positivamente</span><span class="s" id="k-pos-s">&nbsp;</span></div>
+    <div class="kpi" style="--tile: var(--c-neg)"><span class="v" id="k-neg">0</span><span class="l">Chiusi negativamente</span><span class="s" id="k-neg-s">&nbsp;</span></div>
+  </div>
+
+  <div class="legend" aria-label="Legenda">
+    <span><i style="--c: var(--c-pos)"></i>Chiusi positivamente (Polizza emessa)</span>
+    <span><i style="--c: var(--c-lav)"></i>In lavorazione</span>
+    <span><i style="--c: var(--c-neg)"></i>Chiusi negativamente (Non interessato, Recapito errato)</span>
+    <span><i style="--c: var(--c-da)"></i>Da contattare</span>
+  </div>
+
+  <div class="stats-wrap">
+    <table class="stats">
+      <thead><tr>
+        <th>Sede</th><th class="num">Leads</th><th class="num">Gestiti</th><th class="num">Positivi</th>
+        <th class="num">Negativi</th><th class="num">In lavorazione</th><th class="num">Da contattare</th>
+        <th class="num">Successo</th><th>Composizione</th>
+      </tr></thead>
+      <tbody id="stats-body"></tbody>
+      <tfoot id="stats-foot"></tfoot>
+    </table>
+  </div>
+  <p class="stats-note">Gestito = almeno un contatto registrato. Successo = chiusi positivamente sul totale dei gestiti. Clicca una sede per aprirne i leads.</p>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Scheda lead">
+  <div class="drawer-in">
+    <div class="d-head">
+      <div>
+        <h2 id="d-name"></h2>
+        <div class="muted small" id="d-sub"></div>
+      </div>
+      <button type="button" class="close" id="d-close">Chiudi</button>
+    </div>
+    <div class="sede-row">
+      <span id="d-status"></span>
+      <label class="small muted">Sede <select id="d-sede" aria-label="Sede del lead"></select></label>
+    </div>
+    <div class="arch-note" id="d-arch"></div>
+    <div id="d-dup"></div>
+    <section class="guide" id="d-guide" hidden aria-label="Come contattare il cliente">
+      <div class="guide-step" id="g-step1">
+        <span class="g-num">1</span>
+        <div class="g-body">
+          <strong>Chiama il cliente</strong>
+          <span class="g-sub">Il primo contatto va sempre fatto con una telefonata.</span>
+          <div class="g-phone" id="g-phone"></div>
+        </div>
+      </div>
+      <div class="guide-step" id="g-step2">
+        <span class="g-num">2</span>
+        <div class="g-body">
+          <strong>Se non risponde, invia l'email</strong>
+          <span class="g-sub" id="g-step2-sub">Registra la chiamata con l'esito "Non risponde": si sbloccherà il messaggio di primo contatto.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="box accent">
+      <h3>Registra contatto</h3>
+      <form class="contact" id="contact-form">
+        <div class="modes" role="radiogroup" aria-label="Modalità">
+          <label><input type="radio" name="modalita" id="m-tel" value="telefono"> Telefono</label>
+          <label><input type="radio" name="modalita" id="m-mail" value="email"> Email</label>
+        </div>
+        <p class="mode-hint" id="mode-hint" hidden>📞 Prima telefona: l'email si può registrare solo dopo una chiamata.</p>
+        <label class="field">Esito
+          <select id="c-esito"><option value="">Seleziona l'esito</option></select>
+        </label>
+        <div class="field" id="c-rich-wrap" hidden>
+          <label for="c-rich" id="c-rich-label">Richiamare il</label>
+          <input type="datetime-local" id="c-rich">
+          <div class="quick" id="c-rich-quick">
+            <button type="button" data-q="2h">Tra 2 ore</button>
+            <button type="button" data-q="t9">Domani 9:00</button>
+            <button type="button" data-q="t15">Domani 15:00</button>
+            <button type="button" data-q="w">Tra una settimana</button>
+          </div>
+        </div>
+        <label class="field">Nota
+          <textarea id="c-nota" rows="3" maxlength="3000" placeholder="Es. richiamare dopo le 18, interessato al preventivo casa"></textarea>
+        </label>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <button class="btn primary" type="submit" id="c-save">Salva contatto</button>
+          <span class="form-msg" id="c-msg"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="box" id="tpl-box">
+      <h3>Messaggio di primo contatto</h3>
+      <p class="tpl-lock" id="tpl-lock" hidden>🔒 Disponibile dopo aver provato a chiamare il cliente. Registra prima la telefonata.</p>
+      <div class="tpl-picks" id="tpl-picks" role="group" aria-label="Scegli il messaggio" hidden></div>
+      <label class="field"><span class="sr">Testo del messaggio</span>
+        <textarea id="tpl-text" rows="14"></textarea>
+      </label>
+      <div class="tpl-actions">
+        <button type="button" class="btn" id="tpl-copy">Copia testo</button>
+        <a class="btn" id="tpl-wa" target="_blank" rel="noopener">Apri in WhatsApp</a>
+        <a class="btn" id="tpl-mail" target="_blank" rel="noopener">Apri email</a>
+        <button type="button" class="btn primary" id="tpl-sent">Ho inviato l'email</button>
+        <span class="form-msg ok" id="tpl-msg"></span>
+      </div>
+    </section>
+
+    <section class="box">
+      <h3 id="h-title">Storico contatti</h3>
+      <ol class="history" id="history"></ol>
+    </section>
+
+    <section class="box"><h3>Recapiti</h3><dl id="d-contacts"></dl></section>
+    <section class="box"><h3>Dati del lead</h3><dl id="d-data"></dl></section>
+    <div><button type="button" class="btn danger" id="d-delete">Elimina questo lead</button></div>
+  </div>
+</aside>
+
+<div class="modal" id="code-modal" hidden>
+  <form id="code-form">
+    <h2>Codice di accesso</h2>
+    <p>Inserisci il codice di accesso dell'agenzia. Viene ricordato su questo computer.</p>
+    <label class="field">Codice <input type="password" id="code-input" autocomplete="current-password" required></label>
+    <span class="form-msg bad" id="code-msg"></span>
+    <button class="btn primary" type="submit">Entra</button>
+  </form>
+</div>
+
+<div class="modal" id="name-modal" hidden>
+  <form id="name-form">
+    <svg class="welcome-logo" viewBox="582 297 695 483" role="img" aria-label="Allianz 202 Orza &amp; Trotta">
+      <use href="#lg-mark" x="832" y="297" width="257" height="223"/>
+      <use href="#lg-word" x="582" y="561" width="695" height="219"/>
+    </svg>
+    <h2>Come ti chiami?</h2>
+    <p>Il nome compare accanto ai contatti che registri, così i colleghi sanno chi ha chiamato.</p>
+    <label class="field">Nome e cognome <input id="name-input" autocomplete="name" required maxlength="60"></label>
+    <label class="field">La tua sede <select id="name-sede"></select></label>
+    <button class="btn primary" type="submit">Continua</button>
+  </form>
+</div>
+
+<div class="modal" id="del-modal" hidden>
+  <form id="del-form">
+    <h2>Elimina leads</h2>
+    <p>I leads eliminati spariscono per tutti, insieme ai contatti registrati. L'operazione non si può annullare.</p>
+    <label class="field">Cosa eliminare <select id="del-scope"></select></label>
+    <p class="del-count" id="del-count"></p>
+    <label class="field">Password <input type="password" id="del-pw" autocomplete="off" required></label>
+    <span class="form-msg bad" id="del-msg"></span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn danger primary" type="submit" id="del-go">Elimina</button>
+      <button class="btn" type="button" id="del-cancel">Annulla</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal" id="pw-modal" hidden>
+  <form id="pw-form">
+    <h2 id="pw-title">Conferma eliminazione</h2>
+    <p id="pw-text"></p>
+    <label class="field">Password <input type="password" id="pw-input" autocomplete="off" required></label>
+    <span class="form-msg bad" id="pw-msg"></span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn danger primary" type="submit">Elimina</button>
+      <button class="btn" type="button" id="pw-cancel">Annulla</button>
+    </div>
+  </form>
+</div>
+
+<div class="modal" id="imports-modal" hidden>
+  <form id="imports-form" class="wide" onsubmit="return false">
+    <h2>Storico import</h2>
+    <p>Se hai caricato un file nella sede sbagliata, premi <strong>Annulla</strong> e poi importalo di nuovo nella sede giusta.</p>
+    <ol class="imports" id="imports-list"></ol>
+    <div><button class="btn" type="button" id="imports-close">Chiudi</button></div>
+  </form>
+</div>
+
+<div class="modal" id="import-modal" hidden>
+  <form id="import-form">
+    <h2>Importa leads</h2>
+    <p>Scegli la sede a cui appartiene il file. Se un lead è già presente, i suoi dati vengono aggiornati e contatti ed esiti restano com'erano.</p>
+    <label class="field">Sede <select id="imp-sede" required></select></label>
+    <label class="field">File Excel <input type="file" id="imp-file" accept=".xls,.xlsx,.csv" required></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" type="submit">Importa</button>
+      <button class="btn" type="button" id="imp-cancel">Annulla</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const SEDI = [
+  ['2513', 'Milano 2513'],
+  ['184', 'Milano 184'],
+  ['606', 'Salerno 606'],
+  ['616', 'Battipaglia Vallo 616'],
+  ['615', 'Calitri 615'],
+  ['607', 'Cercola 607'],
+];
+const SEDE_NAME = Object.fromEntries(SEDI);
+const GIORNI_ARCHIVIO = 10;
+const ESITO_SUCCESSO = 'Polizza emessa';
+const ESITI_NEGATIVI = ['Non interessato', 'Recapito errato'];
+const ESITI_RICHIAMO = ['Da richiamare', 'Appuntamento fissato'];
+const ESITI = [
+  ['Non risponde', 'b-warn'],
+  ['Email inviata', 'b-info'],
+  ['Da richiamare', 'b-warn'],
+  ['Interessato', 'b-info'],
+  ['Appuntamento fissato', 'b-info'],
+  ['Preventivo inviato', 'b-info'],
+  ['Polizza emessa', 'b-ok'],
+  ['Non interessato', 'b-bad'],
+  ['Recapito errato', 'b-bad'],
+];
+const ESITO_CLASS = Object.fromEntries(ESITI);
+const MODALITA = { telefono: 'Telefono', email: 'Email' };
+const DAY = 24 * 60 * 60 * 1000;
+
+// Colonne del file Excel -> campi del lead (intestazioni normalizzate).
+const COLUMNS = {
+  'lead id': 'lead_id', 'lead type': 'lead_type', 'origine': 'origine', 'cognome': 'cognome', 'nome': 'nome',
+  'cod fiscale': 'cod_fiscale', 'targa': 'targa', 'data scadenza polizza prec': 'scadenza_polizza',
+  'email': 'email', 'cellulare': 'cellulare', 'cap': 'cap', 'num civico': 'civico', 'provincia': 'provincia',
+  'comune': 'comune', 'indirizzo': 'indirizzo', 'identificativo preventivo': 'id_preventivo',
+  'gia cliente': 'gia_cliente', 'nome agenzia lead assegnata': 'agenzia', 'consenso ricontatto lead': 'consenso',
+  'data creazione lead': 'data_creazione', 'data ultima modifica lead': 'data_modifica',
+};
+const DATE_FIELDS = ['scadenza_polizza', 'data_creazione', 'data_modifica'];
+
+const $ = (id) => document.getElementById(id);
+const bySede = new Map();   // sede -> Map(lead_id -> lead)
+const selected = new Set();
+const state = { sort: null, visible: [], sez: 'attivi', stato: 'tutti', q: '', esito: '', tipo: '', open: null, hist: [], histFor: null };
+let db = null, downloads = null, unsubHist = null;
+
+// ---------- utilità ----------
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fmtDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : (iso || '');
+}
+function fmtWhen(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+function fmtDay(ms) { return new Date(ms).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+function normHeader(h) {
+  return String(h).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function toIso(v) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(v);
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : v;
+}
+function fixEmail(v) {
+  let e = v.trim().toLowerCase();
+  if (!e.includes('@') && (e.match(/\?/g) || []).length === 1) e = e.replace('?', '@');
+  return e;
+}
+function badge(esito) {
+  return esito
+    ? `<span class="badge ${ESITO_CLASS[esito] || 'b-info'}">${esc(esito)}</span>`
+    : '<span class="badge b-new">Da contattare</span>';
+}
+function yn(v) { return v === 'S' ? 'Sì' : v === 'N' ? 'No' : '—'; }
+function showBanner(text, kind = '', action = null) {
+  const b = $('banner');
+  b.className = 'notice' + (kind ? ' ' + kind : '') + (action ? ' dupbar' : '');
+  b.textContent = text;
+  if (action) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn';
+    btn.textContent = action.label;
+    btn.addEventListener('click', action.fn);
+    b.append(' ', btn);
+  }
+  b.hidden = !text;
+}
+function sedeOptions(withAll) {
+  return (withAll ? '<option value="">Tutte le sedi</option>' : '') + SEDI.map(([c, n]) => `<option value="${c}">${esc(n)}</option>`).join('');
+}
+function store(key, val) { try { localStorage.setItem(key, val); } catch {} }
+function load(key) { try { return localStorage.getItem(key) || ''; } catch { return ''; } }
+
+// Sezione di un lead: successi (polizza emessa), archivio (ultimo esito da almeno 10 giorni) o attivi.
+function sezione(l, now = Date.now()) {
+  const u = l.ultimo;
+  if (!u) return 'attivi';
+  if (u.esito === ESITO_SUCCESSO) return 'successi';
+  // Con un richiamo in programma il lead resta da lavorare fino a 10 giorni dopo il richiamo.
+  const base = Math.max(Date.parse(u.at), u.richiamo ? Date.parse(u.richiamo) : 0);
+  return now - base >= GIORNI_ARCHIVIO * DAY ? 'archivio' : 'attivi';
+}
+function allLeads() {
+  const sede = $('sede').value;
+  if (sede) return [...(bySede.get(sede)?.values() || [])];
+  return [...bySede.values()].flatMap((m) => [...m.values()]);
+}
+// Chiavi che identificano la stessa persona: cellulare, email, codice fiscale.
+function normPhone(v) {
+  let d = String(v || '').replace(/\D/g, '');
+  if (d.startsWith('0039')) d = d.slice(4);
+  else if (d.length === 12 && d.startsWith('39')) d = d.slice(2);
+  return d.length >= 6 ? d : '';
+}
+function personKeys(l) {
+  const k = [];
+  const tel = normPhone(l.cellulare);
+  if (tel) k.push('t:' + tel);
+  const mail = String(l.email || '').trim().toLowerCase();
+  if (mail.includes('@')) k.push('e:' + mail);
+  const cf = String(l.cod_fiscale || '').trim().toUpperCase();
+  if (cf.length === 16) k.push('c:' + cf);
+  return k;
+}
+function everyLead() { return [...bySede.values()].flatMap((m) => [...m.values()]); }
+// Data della richiesta più recente, considerando anche i lead uniti.
+function reqDate(l) {
+  return [l.data_creazione || '', ...(l.altriLead || []).map((a) => a.data_creazione || '')].sort().pop();
+}
+function entryOf(l) {
+  return { lead_id: l.lead_id, lead_type: l.lead_type || '', origine: l.origine || '', data_creazione: l.data_creazione || '', sede: l.sede || '' };
+}
+// Gruppi di lead già salvati che appartengono alla stessa persona.
+function duplicateGroups() {
+  const all = everyLead();
+  const parent = new Map(all.map((l) => [l.lead_id, l.lead_id]));
+  const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+  const byKey = new Map();
+  for (const l of all) for (const pk of personKeys(l)) {
+    const k = (l.sede || '') + '|' + pk;
+    if (byKey.has(k)) parent.set(find(l.lead_id), find(byKey.get(k)));
+    else byKey.set(k, l.lead_id);
+  }
+  const groups = new Map();
+  for (const l of all) {
+    const r = find(l.lead_id);
+    if (!groups.has(r)) groups.set(r, []);
+    groups.get(r).push(l);
+  }
+  return [...groups.values()].filter((g) => g.length > 1);
+}
+function renderDupBanner() {
+  const groups = duplicateGroups();
+  const n = groups.reduce((t, g) => t + g.length - 1, 0);
+  $('dup-banner').hidden = !n || !db;
+  $('dup-text').textContent = n === 1
+    ? '1 lead è un doppione di un nominativo già presente nella stessa sede (stesso cellulare, email o codice fiscale).'
+    : `${n} leads sono doppioni di nominativi già presenti nella stessa sede (stesso cellulare, email o codice fiscale).`;
+}
+
+$('dup-merge').addEventListener('click', async () => {
+  const btn = $('dup-merge');
+  btn.disabled = true;
+  const groups = duplicateGroups();
+  let uniti = 0;
+  try {
+    for (const g of groups) {
+      // Resta il lead con più contatti; a parità, il più vecchio.
+      g.sort((a, b) => (b.nContatti || 0) - (a.nContatti || 0) || (a.data_creazione || '').localeCompare(b.data_creazione || '') || a.lead_id.localeCompare(b.lead_id));
+      const [main, ...others] = g;
+      const altri = [...(main.altriLead || [])];
+      let ultimo = main.ultimo || null, n = main.nContatti || 0;
+      for (const o of others) {
+        const cs = await db.collection('contatti').where('leadId', '==', o.lead_id).get();
+        for (const c of cs.docs) await db.collection('contatti').doc(c.id).update({ leadId: main.lead_id });
+        altri.push(entryOf(o), ...(o.altriLead || []));
+        if (o.ultimo && (!ultimo || o.ultimo.at > ultimo.at)) ultimo = o.ultimo;
+        n += o.nContatti || 0;
+      }
+      const seen = new Set([main.lead_id]);
+      await db.collection('leads').doc(main.lead_id).update({
+        altriLead: altri.filter((a) => !seen.has(a.lead_id) && seen.add(a.lead_id)), ultimo, nContatti: n,
+      });
+      for (const o of others) { await db.collection('leads').doc(o.lead_id).delete(); uniti++; }
+    }
+    showBanner(`Uniti ${uniti} doppioni: ogni nominativo ora compare una sola volta, con tutte le richieste ricevute.`, 'ok');
+  } catch (err) {
+    showBanner(`Unione interrotta dopo ${uniti} doppioni. ${writeErrorText(err)}`, 'bad');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function findLead(id) {
+  for (const m of bySede.values()) if (m.has(id)) return m.get(id);
+  return null;
+}
+
+// ---------- operatore ----------
+let memName = '';
+function getName() { return load('operatore') || memName; }
+function renderMe() {
+  const n = getName();
+  $('me').hidden = !n;
+  $('me-name').textContent = n;
+  $('me-initials').textContent = n.split(/\s+/).map((w) => w[0] || '').join('').slice(0, 2).toUpperCase();
+}
+function askName() {
+  $('name-input').value = getName();
+  $('name-sede').value = $('sede').value || '2513';
+  $('name-modal').hidden = false;
+  $('name-input').focus();
+}
+$('name-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const n = $('name-input').value.trim();
+  if (!n) return;
+  memName = n;
+  store('operatore', n);
+  $('sede').value = $('name-sede').value;
+  store('sede', $('sede').value);
+  $('name-modal').hidden = true;
+  renderMe();
+  renderList();
+});
+$('me-change').addEventListener('click', askName);
+$('sede').addEventListener('change', () => { store('sede', $('sede').value); renderList(); });
+
+// ---------- elenco ----------
+const HINTS = {
+  attivi: `Leads da contattare e leads con un esito registrato negli ultimi ${GIORNI_ARCHIVIO} giorni.`,
+  archivio: `Leads il cui ultimo esito risale a ${GIORNI_ARCHIVIO} o più giorni fa, dal più recente. Un nuovo contatto li riporta tra quelli da lavorare.`,
+  successi: 'Leads con esito "Polizza emessa", dal più recente.',
+};
+
+function renderSelBar() {
+  const ids = new Set(everyLead().map((l) => l.lead_id));
+  for (const id of [...selected]) if (!ids.has(id)) selected.delete(id);
+  $('sel-bar').hidden = selected.size === 0;
+  $('sel-count').textContent = selected.size === 1 ? '1 lead selezionato' : `${selected.size} leads selezionati`;
+}
+$('sel-clear').addEventListener('click', () => { selected.clear(); renderList(); });
+$('sel-delete').addEventListener('click', async () => {
+  const leads = [...selected].map(findLead).filter(Boolean);
+  if (!leads.length || !db) return;
+  const names = leads.slice(0, 5).map((l) => `${l.cognome} ${l.nome}`).join(', ') + (leads.length > 5 ? ` e altri ${leads.length - 5}` : '');
+  const ok = await askPassword(leads.length === 1 ? 'Elimina 1 lead' : `Elimina ${leads.length} leads`,
+    `Verranno eliminati per tutti, insieme ai contatti registrati: ${names}.`);
+  if (!ok) return;
+  if (state.open && selected.has(state.open)) closeLead();
+  try {
+    const n = await deleteLeads(leads, (k) => showBanner(`Eliminazione in corso: ${k} di ${leads.length}…`));
+    selected.clear();
+    showBanner(n === 1 ? '1 lead eliminato.' : `${n} leads eliminati.`, 'ok');
+    renderList();
+  } catch (err) { showBanner(`Eliminazione interrotta. ${writeErrorText(err)}`, 'bad'); }
+});
+
+// Barra sotto il titolo: andamento complessivo di tutte le sedi, aggiornato in tempo reale.
+function renderBrandBar() {
+  const bar = $('app-bar');
+  const c = countOf(everyLead());
+  const tip = c.tot
+    ? `Tutte le sedi: ${c.pos} chiusi positivamente, ${c.lav} in lavorazione, ${c.neg} chiusi negativamente, ${c.da} da contattare. Clic per l'andamento sedi.`
+    : "Andamento sedi: si colora man mano che registrate gli esiti.";
+  bar.title = tip;
+  bar.setAttribute('aria-label', tip);
+  if (!c.gest) { bar.classList.add('is-empty'); bar.innerHTML = ''; return; }
+  bar.classList.remove('is-empty');
+  bar.innerHTML = [['pos', c.pos], ['lav', c.lav], ['neg', c.neg], ['da', c.da]]
+    .filter(([, n]) => n).map(([k, n]) => `<span style="flex:${n} 1 0;--c:var(--c-${k})"></span>`).join('');
+}
+$('app-bar').addEventListener('click', () => showView('stats'));
+
+function renderList() {
+  renderStats();
+  renderRecalls();
+  renderBrandBar();
+  renderSelBar();
+  const now = Date.now();
+  renderDupBanner();
+  const all = allLeads();
+  const groups = { attivi: [], archivio: [], successi: [] };
+  for (const l of all) groups[sezione(l, now)].push(l);
+  for (const k of Object.keys(groups)) $('n-' + k).textContent = groups[k].length;
+  for (const t of document.querySelectorAll('.section-tab')) t.setAttribute('aria-selected', String(t.dataset.sez === state.sez));
+  $('section-hint').textContent = HINTS[state.sez];
+  $('section-title').textContent = { attivi: 'Da lavorare', archivio: 'Archivio generale', successi: 'Contatti con successo' }[state.sez];
+
+  const inSez = groups[state.sez];
+  const isAttivi = state.sez === 'attivi';
+  $('tabs').hidden = !isAttivi;
+  const nDa = groups.attivi.filter((l) => !l.ultimo).length;
+  $('n-tutti').textContent = groups.attivi.length;
+  $('n-da').textContent = nDa;
+  $('n-fatti').textContent = groups.attivi.length - nDa;
+  for (const t of document.querySelectorAll('.tab')) t.setAttribute('aria-pressed', String(t.dataset.stato === state.stato));
+  $('f-esito').hidden = state.sez === 'successi';
+
+  const tipi = [...new Set(all.map((l) => l.lead_type).filter(Boolean))].sort();
+  const ft = $('f-tipo');
+  const cur = ft.value;
+  ft.innerHTML = '<option value="">Tutti i tipi</option>' + tipi.map((t) => `<option>${esc(t)}</option>`).join('');
+  ft.value = tipi.includes(cur) ? cur : '';
+  state.tipo = ft.value;
+
+  const q = state.q.toLowerCase();
+  const rows = inSez.filter((l) => {
+    const u = l.ultimo;
+    if (isAttivi && state.stato === 'da' && u) return false;
+    if (isAttivi && state.stato === 'fatti' && !u) return false;
+    if (state.esito && state.sez !== 'successi' && (!u || u.esito !== state.esito)) return false;
+    if (state.tipo && l.lead_type !== state.tipo) return false;
+    if (q) {
+      const hay = [l.cognome, l.nome, l.nome + ' ' + l.cognome, l.cellulare, l.email, l.targa, l.cod_fiscale, l.lead_id, ...(l.altriLead || []).map((a) => a.lead_id)].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  if (state.sort) {
+    const { key, dir } = state.sort;
+    const ORD = ['', ...ESITI.map(([e]) => e)];
+    const val = {
+      cliente: (l) => `${l.cognome} ${l.nome}`.toLowerCase(),
+      recapiti: (l) => l.cellulare || l.email || '',
+      tipo: (l) => `${l.lead_type} ${l.origine}`.toLowerCase(),
+      creato: (l) => reqDate(l) || '',
+      stato: (l) => String(ORD.indexOf(l.ultimo?.esito || '')).padStart(2, '0'),
+      ultimo: (l) => l.ultimo?.at || '',
+    }[key];
+    rows.sort((a, b) => {
+      const va = val(a), vb = val(b);
+      if (!va && vb) return 1;      // i valori vuoti vanno sempre in fondo
+      if (va && !vb) return -1;
+      return (va < vb ? -1 : va > vb ? 1 : 0) * (dir === 'asc' ? 1 : -1) || a.lead_id.localeCompare(b.lead_id);
+    });
+  } else if (isAttivi) rows.sort((a, b) => reqDate(b).localeCompare(reqDate(a)) || b.lead_id.localeCompare(a.lead_id));
+  else rows.sort((a, b) => b.ultimo.at.localeCompare(a.ultimo.at));
+
+  const list = $('list');
+  if (all.length === 0) {
+    const sede = $('sede').value;
+    list.innerHTML = `<div class="empty">
+      <h2>Nessun lead${sede ? ' per ' + esc(SEDE_NAME[sede]) : ''}</h2>
+      <ol>
+        <li>Premi <strong>Importa Excel</strong>, scegli la sede e il file dei leads.</li>
+        <li>Ripeti per il file di ogni sede.</li>
+        <li>I collaboratori aprono un lead e registrano modalità, esito e nota del contatto.</li>
+      </ol></div>`;
+    return;
+  }
+  if (rows.length === 0) {
+    list.innerHTML = `<div class="empty">${inSez.length ? 'Nessun lead corrisponde ai filtri.' : 'Questa sezione è vuota.'}</div>`;
+    return;
+  }
+  const showSede = !$('sede').value;
+  const lastCol = isAttivi ? 'Ultimo contatto' : state.sez === 'archivio' ? 'Ultimo esito' : 'Polizza emessa il';
+  state.visible = rows.map((l) => l.lead_id);
+  const allSel = rows.length > 0 && rows.every((l) => selected.has(l.lead_id));
+  list.innerHTML = `<table><thead><tr>
+      <th class="sel"><input type="checkbox" id="sel-all" aria-label="Seleziona tutti i leads visibili"${allSel ? ' checked' : ''}></th>
+      ${[['cliente', 'Cliente'], ['recapiti', 'Recapiti'], ['tipo', 'Tipo'], ['creato', 'Creato'], ['stato', 'Stato'], ['ultimo', lastCol]].map(([k, t]) => {
+        const on = state.sort?.key === k;
+        return `<th aria-sort="${on ? (state.sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}"><button type="button" class="th-sort${on ? ' on' : ''}" data-sort="${k}">${esc(t)}<span class="arr" aria-hidden="true">${on ? (state.sort.dir === 'asc' ? '▲' : '▼') : '↕'}</span></button></th>`;
+      }).join('')}
+    </tr></thead><tbody>${rows.map((l) => {
+      const u = l.ultimo, n = l.nContatti || 0;
+      const isSel = selected.has(l.lead_id);
+      return `<tr data-id="${esc(l.lead_id)}" tabindex="0" class="${u ? '' : 'unread'}${isSel ? ' selected' : ''}">
+        <td class="sel"><input type="checkbox" data-sel="${esc(l.lead_id)}" aria-label="Seleziona ${esc(l.cognome)} ${esc(l.nome)}"${isSel ? ' checked' : ''}></td>
+        <td><span class="name">${esc(l.cognome)} ${esc(l.nome)}</span>${l.gia_cliente === 'S' ? '<span class="tag">già cliente</span>' : ''}${l.altriLead?.length ? `<span class="tag req">${l.altriLead.length + 1} richieste</span>` : ''}
+          <div class="muted small">${showSede ? `<span class="sede-tag">${esc(SEDE_NAME[l.sede] || 'Senza sede')}</span> ` : ''}${esc(l.comune)}${l.targa ? ' · <span class="mono">' + esc(l.targa) + '</span>' : ''}</div></td>
+        <td><span class="mono">${esc(l.cellulare)}</span><div class="muted small">${esc(l.email)}</div></td>
+        <td class="col-tipo">${esc(l.lead_type)}<div class="muted small">${esc(l.origine)}</div></td>
+        <td class="col-data">${fmtDate(reqDate(l))}</td>
+        <td>${badge(u && u.esito)}</td>
+        <td class="small">${u ? `${fmtWhen(u.at)} · ${MODALITA[u.modalita] || ''}<div class="muted">${esc(u.operatore)}${n > 1 ? ' · ' + n + ' contatti' : ''}</div>${u.richiamo && ESITI_RICHIAMO.includes(u.esito) ? `<div class="rich-tag${Date.parse(u.richiamo) < Date.now() ? ' late' : ''}">${u.esito === 'Appuntamento fissato' ? 'Appuntamento' : 'Richiamare'} ${esc(richiamoLabel(u.richiamo))}</div>` : ''}` : '<span class="muted">—</span>'}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+document.querySelector('.sections').addEventListener('click', (e) => {
+  const t = e.target.closest('.section-tab');
+  if (!t) return;
+  state.sez = t.dataset.sez;
+  renderList();
+});
+$('list').addEventListener('click', (e) => {
+  const th = e.target.closest('[data-sort]');
+  if (th) {
+    const k = th.dataset.sort;
+    // Primo clic: ordine naturale (A→Z per testi, più recenti prima per date); secondo: inverso; terzo: ordine predefinito.
+    const first = ['creato', 'ultimo'].includes(k) ? 'desc' : 'asc';
+    if (state.sort?.key !== k) state.sort = { key: k, dir: first };
+    else if (state.sort.dir === first) state.sort = { key: k, dir: first === 'asc' ? 'desc' : 'asc' };
+    else state.sort = null;
+    renderList();
+    return;
+  }
+  if (e.target.closest('.sel')) {
+    const box = e.target.closest('.sel').querySelector('input');
+    if (e.target !== box) box.checked = !box.checked;
+    if (box.id === 'sel-all') {
+      for (const id of state.visible) box.checked ? selected.add(id) : selected.delete(id);
+    } else {
+      box.checked ? selected.add(box.dataset.sel) : selected.delete(box.dataset.sel);
+    }
+    renderList();
+    return;
+  }
+  const tr = e.target.closest('tr[data-id]');
+  if (tr) openLead(tr.dataset.id);
+});
+$('list').addEventListener('keydown', (e) => {
+  const tr = e.target.closest('tr[data-id]');
+  if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openLead(tr.dataset.id); }
+});
+$('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  state.stato = t.dataset.stato;
+  renderList();
+});
+$('q').addEventListener('input', (e) => { state.q = e.target.value.trim(); renderList(); });
+$('f-esito').addEventListener('change', (e) => { state.esito = e.target.value; renderList(); });
+$('f-tipo').addEventListener('change', (e) => { state.tipo = e.target.value; renderList(); });
+
+// ---------- percorso: prima la telefonata, poi l'email ----------
+// Telefonata già fatta: risulta dal lead (campo "chiamato") o dallo storico caricato.
+// Con lo storico del lead già caricato conta solo quello (così un contatto eliminato non lascia il blocco aperto).
+function histReady(l) { return state.histFor === l.lead_id && state.histLoaded; }
+function phoneDone(l) {
+  if (histReady(l)) return state.hist.some((c) => c.modalita === 'telefono');
+  return !!l.chiamato;
+}
+function emailSent(l) {
+  if (histReady(l)) return state.hist.some((c) => c.esito === 'Email inviata');
+  return !!l.emailInviata;
+}
+// Senza cellulare non si può telefonare: in quel caso l'email è permessa subito.
+function phoneFirst(l) { return !!normPhone(l.cellulare) && !phoneDone(l); }
+
+function renderGuide(l) {
+  const u = l.ultimo;
+  const show = !u || ['Non risponde', 'Email inviata'].includes(u.esito);
+  $('d-guide').hidden = !show;
+  const called = phoneDone(l), sent = emailSent(l);
+  $('g-step1').className = 'guide-step ' + (called ? 'done' : 'active');
+  $('g-step2').className = 'guide-step ' + (sent ? 'done' : called ? 'active' : 'todo');
+  $('g-phone').innerHTML = l.cellulare && !called
+    ? `<span class="num">${esc(l.cellulare)}</span><button type="button" class="copy" data-copy="${esc(l.cellulare)}">copia</button><a href="tel:${esc(normPhone(l.cellulare))}">Chiama</a>`
+    : '';
+  if (!normPhone(l.cellulare)) $('g-step1').querySelector('.g-sub').textContent = 'Questo lead non ha un numero di cellulare: puoi passare direttamente all\'email.';
+  else $('g-step1').querySelector('.g-sub').textContent = 'Il primo contatto va sempre fatto con una telefonata.';
+  $('g-step2-sub').textContent = sent ? 'Email di primo contatto inviata.'
+    : called ? 'Usa il messaggio qui sotto, poi premi "Ho inviato l\'email".'
+    : 'Registra la chiamata con l\'esito "Non risponde": si sbloccherà il messaggio di primo contatto.';
+
+  // Modulo contatto: email disattivata finché non c'è stata una telefonata.
+  const lock = phoneFirst(l);
+  $('m-mail').disabled = lock;
+  if (lock && $('m-mail').checked) $('m-mail').checked = false;
+  $('mode-hint').hidden = !lock;
+  // Messaggio di primo contatto bloccato fino alla telefonata.
+  $('tpl-box').classList.toggle('locked', lock);
+  $('tpl-lock').hidden = !lock;
+  $('tpl-sent').hidden = sent;
+}
+
+$('c-esito').addEventListener('change', () => {
+  // "Email inviata" si registra sempre come contatto via email; "Non risponde" è tipico della telefonata.
+  const e = $('c-esito').value;
+  if (e === 'Email inviata' && !$('m-mail').disabled) $('m-mail').checked = true;
+  if (e === 'Non risponde') $('m-tel').checked = true;
+});
+
+$('tpl-sent').addEventListener('click', async () => {
+  const l = findLead(state.open);
+  if (!l || !db) return;
+  if (phoneFirst(l)) return;
+  if (!getName()) { askName(); return; }
+  const btn = $('tpl-sent');
+  btn.disabled = true;
+  const before = state.histFor === l.lead_id ? state.hist.length : (l.nContatti || 0);
+  const c = { leadId: l.lead_id, modalita: 'email', esito: 'Email inviata', nota: 'Inviato il messaggio di primo contatto.', operatore: getName(), at: new Date().toISOString(), richiamo: null };
+  try {
+    await db.collection('contatti').add(c);
+    await db.collection('leads').doc(l.lead_id).update({ ultimo: summary(c), nContatti: before + 1, emailInviata: true });
+    $('tpl-msg').textContent = 'Registrato: email inviata.';
+    setTimeout(() => { $('tpl-msg').textContent = ''; }, 2500);
+  } catch (err) { handleWriteError(err); }
+  finally { btn.disabled = false; }
+});
+
+// ---------- messaggi pronti ----------
+const FIRMA_AGENZIA = 'Allianz 202 Orza & Trotta';
+function titleCase(s) { return String(s || '').toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()); }
+// Recapiti di ogni sede da inserire nel messaggio: finché un campo è vuoto resta il segnaposto tra parentesi quadre.
+const NUMERO_VERDE = '800 950 141';
+const SEDE_CONTATTI = {
+  '2513': { tel: NUMERO_VERDE, email: 'milano55@ageallianz.it' },
+  '184': { tel: NUMERO_VERDE, email: 'milano25@ageallianz.it' },
+  '606': { tel: NUMERO_VERDE, email: 'salerno2@ageallianz.it' },
+  '616': { tel: NUMERO_VERDE, email: 'battipaglia1@ageallianz.it' },
+  '615': { tel: NUMERO_VERDE, email: 'calitri1@ageallianz.it' },
+  '607': { tel: NUMERO_VERDE, email: 'cercola1@ageallianz.it' },
+};
+const TEMPLATES = [
+  { id: 'primo', label: 'Primo contatto', subject: 'La tua richiesta di contatto - Allianz202', text: (v) => "Gentile {nome},\n\nabbiamo ricevuto la tua richiesta di contatto tramite i canali digitali di Allianz. Ci fa davvero molto piacere che tu abbia pensato a noi.\n\nSpesso il mondo online offre risposte veloci, ma noi di Allianz202 crediamo che nulla possa sostituire il valore di una consulenza su misura e di un volto amico su cui contare per proteggere ci\u00f2 che ami.\n\nSiamo qui per guidarti, chiarire ogni tuo dubbio o aiutarti a trovare la soluzione perfetta per te, qualunque sia la tua esigenza del momento (casa, auto, salute, risparmio o previdenza).\n\nCome puoi trovarci o metterti in contatto con noi?\n\n   - Telefono: {tel}\n   - Email diretta: {email}\n   - Vieni a trovarci: Siamo a tua completa disposizione presso i nostri uffici.\n\nSe preferisci, puoi rispondere direttamente a questa email per fissare subito un appuntamento (in agenzia o telefonico) nel giorno e all'orario che ti sono pi\u00f9 comodi. Un membro del nostro team sar\u00e0 felice di dedicarsi interamente a te.\n\nUn cordiale saluto,"
+    .replace('{nome}', v.nome).replace('{tel}', v.tel).replace('{email}', v.email) },
+];
+let tplCurrent = 'primo', tplLeadFor = null;
+function tplVars(l) {
+  return {
+    nome: titleCase(l.nome) || 'Cliente', op: getName() || "l'agenzia", sede: SEDE_NAME[l.sede] || '',
+    tel: SEDE_CONTATTI[l.sede]?.tel || '[Inserisci Numero di Telefono della Sede]',
+    email: SEDE_CONTATTI[l.sede]?.email || "[Inserisci Email dell'Agenzia, es. info@allianz202.it]",
+    targa: l.targa || '', scadenza: fmtDate(l.scadenza_polizza),
+    richiamo: l.ultimo?.richiamo ? richiamoLabel(l.ultimo.richiamo) : '',
+  };
+}
+function waNumber(cell) {
+  let d = String(cell || '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.length === 10 && d.startsWith('3')) d = '39' + d;
+  return d;
+}
+function renderTemplates(l, force) {
+  const avail = TEMPLATES.filter((t) => !t.when || t.when(l));
+  if (!avail.some((t) => t.id === tplCurrent)) tplCurrent = avail[0].id;
+  $('tpl-picks').hidden = avail.length < 2;
+  $('tpl-picks').innerHTML = avail.map((t) => `<button type="button" data-tpl="${t.id}" aria-pressed="${t.id === tplCurrent}">${esc(t.label)}</button>`).join('');
+  // Il testo si rigenera solo cambiando lead o messaggio, così le modifiche a mano restano.
+  if (force || tplLeadFor !== l.lead_id) { $('tpl-text').value = TEMPLATES.find((t) => t.id === tplCurrent).text(tplVars(l)); tplLeadFor = l.lead_id; $('tpl-msg').textContent = ''; }
+  updateTplLinks(l);
+}
+function updateTplLinks(l) {
+  const text = $('tpl-text').value;
+  const t = TEMPLATES.find((x) => x.id === tplCurrent);
+  const wa = waNumber(l.cellulare);
+  $('tpl-wa').hidden = !wa;
+  if (wa) $('tpl-wa').href = `https://wa.me/${wa}?text=${encodeURIComponent(text)}`;
+  $('tpl-mail').hidden = !l.email;
+  if (l.email) $('tpl-mail').href = `mailto:${l.email}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(text)}`;
+}
+$('tpl-picks').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tpl]');
+  if (!b) return;
+  tplCurrent = b.dataset.tpl;
+  const l = findLead(state.open);
+  if (l) renderTemplates(l, true);
+});
+$('tpl-text').addEventListener('input', () => { const l = findLead(state.open); if (l) updateTplLinks(l); });
+$('tpl-copy').addEventListener('click', async () => {
+  const ta = $('tpl-text');
+  try { await navigator.clipboard.writeText(ta.value); $('tpl-msg').textContent = 'Testo copiato.'; }
+  catch { ta.focus(); ta.select(); $('tpl-msg').textContent = 'Premi Ctrl+C (o Cmd+C) per copiare.'; }
+  setTimeout(() => { $('tpl-msg').textContent = ''; }, 2500);
+});
+
+// ---------- promemoria di richiamo ----------
+function pad2(n) { return String(n).padStart(2, '0'); }
+function toLocalInput(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function updateRichField() {
+  const e = $('c-esito').value;
+  const show = ESITI_RICHIAMO.includes(e);
+  $('c-rich-wrap').hidden = !show;
+  $('c-rich-label').textContent = e === 'Appuntamento fissato' ? 'Appuntamento il' : 'Richiamare il';
+  if (!show) $('c-rich').value = '';
+}
+$('c-esito').addEventListener('change', updateRichField);
+$('c-rich-quick').addEventListener('click', (e) => {
+  const q = e.target.closest('[data-q]')?.dataset.q;
+  if (!q) return;
+  const d = new Date();
+  if (q === '2h') { d.setHours(d.getHours() + 2); d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0); }
+  if (q === 't9' || q === 't15') { d.setDate(d.getDate() + 1); d.setHours(q === 't9' ? 9 : 15, 0, 0, 0); }
+  if (q === 'w') { d.setDate(d.getDate() + 7); d.setHours(9, 0, 0, 0); }
+  $('c-rich').value = toLocalInput(d);
+});
+function fmtTime(iso) { return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+function richiamoLabel(iso) {
+  const d = new Date(iso), now = new Date();
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(d) - day(now)) / DAY);
+  const when = diff === 0 ? 'oggi' : diff === 1 ? 'domani' : diff === -1 ? 'ieri' : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+  return `${when} alle ${fmtTime(iso)}`;
+}
+// Richiami di oggi e in ritardo (ultimo esito con richiamo entro la fine di oggi), per la sede scelta.
+function renderRecalls() {
+  const end = new Date(); end.setHours(23, 59, 59, 999);
+  const now = Date.now();
+  const due = allLeads()
+    .filter((l) => l.ultimo?.richiamo && ESITI_RICHIAMO.includes(l.ultimo.esito) && Date.parse(l.ultimo.richiamo) <= end.getTime())
+    .sort((a, b) => a.ultimo.richiamo.localeCompare(b.ultimo.richiamo));
+  $('recalls').hidden = due.length === 0;
+  if (!due.length) return;
+  const late = due.filter((l) => Date.parse(l.ultimo.richiamo) < now).length;
+  $('recalls-count').textContent = `${due.length} da fare` + (late ? ` · ${late} in ritardo` : '');
+  $('recalls-list').innerHTML = due.map((l) => {
+    const t = Date.parse(l.ultimo.richiamo);
+    const isLate = t < now;
+    return `<li><button type="button" data-open="${esc(l.lead_id)}" class="${isLate ? 'late' : ''}">
+      <span class="r-time">${isLate && t < new Date().setHours(0, 0, 0, 0) ? esc(richiamoLabel(l.ultimo.richiamo)) : fmtTime(l.ultimo.richiamo)}</span>
+      <span class="r-name">${esc(l.cognome)} ${esc(l.nome)}${!$('sede').value ? ` <span class="sede-tag">${esc(SEDE_NAME[l.sede] || '')}</span>` : ''}</span>
+      <span class="r-phone mono">${esc(l.cellulare)}</span>
+      <span class="r-what">${esc(l.ultimo.esito)}${l.ultimo.nota ? ' · ' + esc(l.ultimo.nota.slice(0, 60)) : ''}</span>
+      ${isLate ? '<span class="badge b-bad">In ritardo</span>' : ''}
+    </button></li>`;
+  }).join('');
+}
+$('recalls-list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-open]');
+  if (b) openLead(b.dataset.open);
+});
+setInterval(() => { if (view === 'lead') renderRecalls(); }, 60 * 1000);
+
+// ---------- andamento sedi ----------
+let view = 'lead';
+function showView(v) {
+  view = v;
+  $('view-lead').hidden = v !== 'lead';
+  $('view-stats').hidden = v !== 'stats';
+  document.querySelector('.sede-pick').hidden = v !== 'lead';
+  for (const b of document.querySelectorAll('.views button')) {
+    if (b.dataset.view === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  }
+  if (v === 'stats') renderStats();
+}
+document.querySelector('.views').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-view]');
+  if (b) showView(b.dataset.view);
+});
+$('period').addEventListener('change', renderStats);
+
+function inPeriod(l, period) {
+  if (period === 'all') return true;
+  const d = reqDate(l);
+  if (!d) return false;
+  const now = new Date();
+  const ym = (dt) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+  if (period === 'month') return d.slice(0, 7) === ym(now);
+  if (period === 'prev') return d.slice(0, 7) === ym(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+  const from = new Date(now.getTime() - Number(period) * DAY).toISOString().slice(0, 10);
+  return d >= from;
+}
+function countOf(leads) {
+  const c = { tot: leads.length, gest: 0, pos: 0, neg: 0 };
+  for (const l of leads) {
+    if (!l.ultimo) continue;
+    c.gest++;
+    if (l.ultimo.esito === ESITO_SUCCESSO) c.pos++;
+    else if (ESITI_NEGATIVI.includes(l.ultimo.esito)) c.neg++;
+  }
+  c.lav = c.gest - c.pos - c.neg;
+  c.da = c.tot - c.gest;
+  return c;
+}
+const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '—');
+function barHtml(c, label) {
+  if (!c.tot) return '<div class="bar empty-bar" aria-hidden="true"></div>';
+  const seg = [['pos', 'Chiusi positivamente'], ['lav', 'In lavorazione'], ['neg', 'Chiusi negativamente'], ['da', 'Da contattare']];
+  return `<div class="bar" role="img" aria-label="${esc(label)}: ${c.pos} positivi, ${c.lav} in lavorazione, ${c.neg} negativi, ${c.da} da contattare">${
+    seg.filter(([k]) => c[k]).map(([k, n]) => `<span style="flex:${c[k]} 1 0;--c:var(--c-${k})" data-tip="${esc(label)} · ${n}: ${c[k]} (${pct(c[k], c.tot)})"></span>`).join('')
+  }</div>`;
+}
+function statsRow(c, name, sede) {
+  return `<td>${sede === undefined ? esc(name) : `<span class="sede-name">${esc(name)}</span>`}</td>
+    <td class="num">${c.tot}</td>
+    <td class="num">${c.gest}<span class="pct">${pct(c.gest, c.tot)}</span></td>
+    <td class="num">${c.pos}</td><td class="num">${c.neg}</td><td class="num">${c.lav}</td><td class="num">${c.da}</td>
+    <td class="num">${pct(c.pos, c.gest)}</td>
+    <td>${barHtml(c, name)}</td>`;
+}
+function renderStats() {
+  if (view !== 'stats') return;
+  const period = $('period').value;
+  const all = [];
+  $('stats-body').innerHTML = SEDI.map(([code, name]) => {
+    const leads = [...(bySede.get(code)?.values() || [])].filter((l) => inPeriod(l, period));
+    all.push(...leads);
+    return `<tr data-sede="${code}" tabindex="0">${statsRow(countOf(leads), name, code)}</tr>`;
+  }).join('');
+  const t = countOf(all);
+  $('stats-foot').innerHTML = `<tr>${statsRow(t, 'Totale')}</tr>`;
+  $('k-tot').textContent = t.tot;
+  $('k-tot-s').textContent = `${t.da} ancora da contattare`;
+  $('k-gest').textContent = t.gest;
+  $('k-gest-s').textContent = `${pct(t.gest, t.tot)} dei leads ricevuti`;
+  $('k-pos').textContent = t.pos;
+  $('k-pos-s').textContent = `${pct(t.pos, t.gest)} dei gestiti`;
+  $('k-neg').textContent = t.neg;
+  $('k-neg-s').textContent = `${pct(t.neg, t.gest)} dei gestiti`;
+}
+$('stats-body').addEventListener('click', (e) => {
+  const tr = e.target.closest('tr[data-sede]');
+  if (!tr) return;
+  $('sede').value = tr.dataset.sede;
+  store('sede', tr.dataset.sede);
+  $('tip').hidden = true;
+  showView('lead');
+  renderList();
+});
+$('stats-body').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.closest('tr[data-sede]')) e.target.click();
+});
+$('view-stats').addEventListener('mousemove', (e) => {
+  const seg = e.target.closest('[data-tip]');
+  const tip = $('tip');
+  if (!seg) { tip.hidden = true; return; }
+  tip.textContent = seg.dataset.tip;
+  tip.hidden = false;
+  const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+  tip.style.left = x + 'px';
+  tip.style.top = (e.clientY + 16) + 'px';
+});
+$('view-stats').addEventListener('mouseleave', () => { $('tip').hidden = true; });
+
+// ---------- scheda ----------
+function openLead(id) {
+  state.open = id;
+  $('contact-form').reset();
+  updateRichField();
+  $('c-msg').textContent = '';
+  $('scrim').hidden = false;
+  $('drawer').hidden = false;
+  $('drawer').scrollTop = 0;
+  subscribeHistory(id);
+  renderDrawer();
+  $('d-close').focus();
+}
+function closeLead() {
+  state.open = null;
+  if (unsubHist) { unsubHist(); unsubHist = null; }
+  $('scrim').hidden = true;
+  $('drawer').hidden = true;
+}
+$('d-close').addEventListener('click', closeLead);
+$('scrim').addEventListener('click', closeLead);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.open && $('name-modal').hidden && $('import-modal').hidden && $('imports-modal').hidden && $('pw-modal').hidden && $('del-modal').hidden) closeLead();
+});
+
+function subscribeHistory(id) {
+  if (unsubHist) unsubHist();
+  state.hist = [];
+  state.histFor = id;
+  state.histLoaded = false;
+  if (!db) return;
+  unsubHist = db.collection('contatti').where('leadId', '==', id).limit(200).onSnapshot((snap) => {
+    if (state.histFor !== id) return;
+    state.hist = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.at.localeCompare(a.at));
+    state.histLoaded = true;
+    renderDrawer();
+  }, () => showBanner('Storico contatti non aggiornato: ricarica la pagina.', 'bad'));
+}
+
+function copyBtn(value) {
+  return value ? `<button type="button" class="copy" data-copy="${esc(value)}">copia</button>` : '';
+}
+
+function renderDrawer() {
+  const l = findLead(state.open);
+  if (!l) { closeLead(); return; }
+  const hist = state.hist;
+  $('d-name').textContent = `${l.cognome} ${l.nome}`;
+  $('d-sub').textContent = [`Lead ${l.lead_id}`, l.lead_type, l.origine, l.data_creazione && 'creato il ' + fmtDate(l.data_creazione)].filter(Boolean).join(' · ');
+  $('d-status').innerHTML = badge(l.ultimo && l.ultimo.esito);
+  $('d-sede').value = l.sede || '';
+
+  const sez = sezione(l);
+  const u = l.ultimo;
+  $('d-arch').textContent =
+    sez === 'successi' ? `Tra i contatti con successo dal ${fmtDay(Date.parse(u.at))}.` :
+    sez === 'archivio' ? `In archivio dal ${fmtDay(Date.parse(u.at) + GIORNI_ARCHIVIO * DAY)}. Registrando un nuovo contatto torna tra quelli da lavorare.` :
+    u ? `Passa in archivio il ${fmtDay(Math.max(Date.parse(u.at), u.richiamo ? Date.parse(u.richiamo) : 0) + GIORNI_ARCHIVIO * DAY)} se non viene registrato un nuovo contatto.` : '';
+  if (u?.richiamo && ESITI_RICHIAMO.includes(u.esito)) {
+    $('d-arch').textContent = `${u.esito === 'Appuntamento fissato' ? 'Appuntamento' : 'Da richiamare'} ${richiamoLabel(u.richiamo)}. ` + $('d-arch').textContent;
+  }
+
+  // Stessa persona in altri lead (stesso cellulare o email), in qualsiasi sede.
+  const dups = [...bySede.values()].flatMap((m) => [...m.values()]).filter((o) => o.lead_id !== l.lead_id &&
+    ((l.cellulare && o.cellulare === l.cellulare) || (l.email && o.email === l.email)));
+  $('d-dup').innerHTML = dups.length
+    ? `<div class="dup">Stesso cliente anche in: ${dups.map((o) => `<button type="button" data-open="${esc(o.lead_id)}">lead ${esc(o.lead_id)}</button> (${esc(SEDE_NAME[o.sede] || 'senza sede')}, ${esc(o.ultimo?.esito || 'da contattare')})`).join(', ')}</div>`
+    : '';
+
+  const indirizzo = [[l.indirizzo, l.civico].filter(Boolean).join(' '), [l.cap, l.comune, l.provincia && `(${l.provincia})`].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  $('d-contacts').innerHTML = `
+    <dt>Cellulare</dt><dd>${l.cellulare ? `<span class="mono">${esc(l.cellulare)}</span>${copyBtn(l.cellulare)}` : '—'}</dd>
+    <dt>Email</dt><dd>${l.email ? `<span>${esc(l.email)}</span>${copyBtn(l.email)}` : '—'}</dd>
+    <dt>Indirizzo</dt><dd>${esc(indirizzo) || '—'}</dd>
+    <dt>Consenso ricontatto</dt><dd>${yn(l.consenso)}</dd>`;
+  $('d-data').innerHTML = `
+    <dt>Codice fiscale</dt><dd class="mono">${esc(l.cod_fiscale) || '—'}</dd>
+    <dt>Targa</dt><dd class="mono">${esc(l.targa) || '—'}</dd>
+    <dt>Scadenza polizza prec.</dt><dd>${fmtDate(l.scadenza_polizza) || '—'}</dd>
+    <dt>Preventivo</dt><dd class="mono">${esc((l.id_preventivo || '').replace(/^0+$/, '')) || '—'}</dd>
+    <dt>Già cliente</dt><dd>${yn(l.gia_cliente)}</dd>
+    <dt>Agenzia</dt><dd>${esc(l.agenzia) || '—'}</dd>
+    ${l.altriLead?.length ? `<dt>Richieste ricevute</dt><dd>${[entryOf(l), ...l.altriLead].map((a) =>
+      `Lead <span class="mono">${esc(a.lead_id)}</span> · ${esc([a.lead_type, a.origine].filter(Boolean).join(' '))} · ${fmtDate(a.data_creazione)}${a.sede && a.sede !== l.sede ? ' · ' + esc(SEDE_NAME[a.sede] || '') : ''}`).join('<br>')}</dd>` : ''}`;
+
+  renderTemplates(l, false);
+  renderGuide(l);
+  $('h-title').textContent = `Storico contatti (${hist.length})`;
+  $('history').innerHTML = hist.length
+    ? hist.map((c) => `<li>
+        <div class="h-meta">${badge(c.esito)} <span>${MODALITA[c.modalita] || ''} · ${esc(c.operatore)} · ${fmtWhen(c.at)}${c.richiamo ? ' · ' + (c.esito === 'Appuntamento fissato' ? 'appuntamento ' : 'richiamare ') + esc(fmtWhen(c.richiamo)) : ''}</span>
+          <button type="button" class="del" data-del="${esc(c.id)}">elimina</button></div>
+        ${c.nota ? `<div class="h-note">${esc(c.nota)}</div>` : ''}
+      </li>`).join('')
+    : '<li class="muted" style="border:0;padding:0">Nessun contatto registrato.</li>';
+}
+
+// Riepilogo dell'ultimo contatto salvato sul lead: così elenco e sezioni non dipendono dallo storico.
+function summary(c) {
+  return c ? { esito: c.esito, modalita: c.modalita, at: c.at, operatore: c.operatore, nota: c.nota || '', richiamo: c.richiamo || null } : null;
+}
+
+$('d-sede').addEventListener('change', async (e) => {
+  try { await db.collection('leads').doc(state.open).update({ sede: e.target.value }); }
+  catch (err) { handleWriteError(err); }
+});
+
+$('drawer').addEventListener('click', async (e) => {
+  const open = e.target.closest('[data-open]');
+  if (open) { openLead(open.dataset.open); return; }
+
+  const cp = e.target.closest('[data-copy]');
+  if (cp) {
+    try { await navigator.clipboard.writeText(cp.dataset.copy); cp.textContent = 'copiato'; }
+    catch { const r = document.createRange(); r.selectNodeContents(cp.previousElementSibling || cp); getSelection().removeAllRanges(); getSelection().addRange(r); }
+    setTimeout(() => { cp.textContent = 'copia'; }, 1500);
+    return;
+  }
+
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    if (!del.classList.contains('armed')) {
+      del.classList.add('armed');
+      del.textContent = 'conferma eliminazione';
+      setTimeout(() => { del.classList.remove('armed'); del.textContent = 'elimina'; }, 4000);
+      return;
+    }
+    del.disabled = true;
+    const leadId = state.open;
+    const rest = state.hist.filter((c) => c.id !== del.dataset.del);
+    try {
+      await db.collection('contatti').doc(del.dataset.del).delete();
+      await db.collection('leads').doc(leadId).update({
+        ultimo: summary(rest[0]), nContatti: rest.length,
+        chiamato: rest.some((c) => c.modalita === 'telefono'),
+        emailInviata: rest.some((c) => c.esito === 'Email inviata'),
+      });
+    } catch (err) { handleWriteError(err); del.disabled = false; }
+  }
+});
+
+$('contact-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('c-msg');
+  msg.className = 'form-msg bad';
+  const modalita = document.querySelector('input[name="modalita"]:checked')?.value;
+  const esito = $('c-esito').value;
+  if (!db) { msg.textContent = 'Archivio condiviso non disponibile: il contatto non può essere salvato.'; return; }
+  if (!modalita) { msg.textContent = 'Indica se hai contattato il cliente per telefono o per email.'; return; }
+  const leadNow = findLead(state.open);
+  if (modalita === 'email' && leadNow && phoneFirst(leadNow)) { msg.textContent = 'Il primo contatto va fatto per telefono: chiama prima il cliente.'; return; }
+  if (esito === 'Email inviata' && modalita !== 'email') { msg.textContent = 'Per "Email inviata" scegli la modalità Email.'; return; }
+  if (!esito) { msg.textContent = "Seleziona l'esito del contatto."; return; }
+  if (!getName()) { askName(); msg.textContent = 'Inserisci il tuo nome, poi premi di nuovo Salva.'; return; }
+  const btn = $('c-save');
+  btn.disabled = true;
+  const leadId = state.open;
+  const before = state.histFor === leadId ? state.hist.length : 0;
+  let richiamo = null;
+  if (ESITI_RICHIAMO.includes(esito)) {
+    const v = $('c-rich').value;
+    if (!v) { msg.textContent = esito === 'Appuntamento fissato' ? "Indica data e ora dell'appuntamento." : 'Indica quando richiamare il cliente.'; btn.disabled = false; return; }
+    richiamo = new Date(v).toISOString();
+  }
+  const c = { leadId, modalita, esito, nota: $('c-nota').value.trim(), operatore: getName(), at: new Date().toISOString(), richiamo };
+  try {
+    await db.collection('contatti').add(c);
+    const extra = {};
+    if (modalita === 'telefono') extra.chiamato = true;
+    if (esito === 'Email inviata') extra.emailInviata = true;
+    await db.collection('leads').doc(leadId).update({ ultimo: summary(c), nContatti: before + 1, ...extra });
+    $('contact-form').reset();
+    updateRichField();
+    msg.className = 'form-msg ok';
+    msg.textContent = esito === ESITO_SUCCESSO ? 'Contatto salvato: il lead è ora tra i contatti con successo.' : 'Contatto salvato.';
+  } catch (err) {
+    msg.textContent = writeErrorText(err);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function writeErrorText(err) {
+  if (err && err.code === 'invalid_argument') return 'Non hai il permesso di salvare. Chiedi a chi ha creato la pagina di condividertela come Collaboratore (Contributor).';
+  if (err && err.code === 'quota_exceeded') return 'Archivio pieno: esporta i dati e chiedi di eliminare i leads più vecchi.';
+  return 'Salvataggio non riuscito. Controlla la connessione e riprova.';
+}
+function handleWriteError(err) { showBanner(writeErrorText(err), 'bad'); }
+
+// ---------- import ----------
+function parseLeads(buf) {
+  const wb = XLSX.read(buf, { type: 'array', raw: false });
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' });
+  if (!rows.length) throw new Error('il file è vuoto');
+  const map = rows[0].map((h) => COLUMNS[normHeader(h)] || null);
+  if (!map.includes('lead_id')) throw new Error('nella prima riga manca la colonna "Lead Id"');
+  const out = [];
+  for (const r of rows.slice(1)) {
+    const l = {};
+    map.forEach((f, i) => { if (f) l[f] = String(r[i] ?? '').trim(); });
+    if (!l.lead_id || !/^[A-Za-z0-9_.~:@+-]{1,100}$/.test(l.lead_id)) continue;
+    for (const f of DATE_FIELDS) if (l[f]) l[f] = toIso(l[f]);
+    if (l.email) l.email = fixEmail(l.email);
+    out.push(l);
+  }
+  return out;
+}
+
+$('import-btn').addEventListener('click', () => {
+  $('import-form').reset();
+  $('imp-sede').value = $('sede').value || '';
+  $('import-modal').hidden = false;
+});
+$('imp-cancel').addEventListener('click', () => { $('import-modal').hidden = true; });
+
+$('import-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const sede = $('imp-sede').value;
+  const file = $('imp-file').files[0];
+  if (!sede || !file) return;
+  $('import-modal').hidden = true;
+  if (!db) { showBanner('Archivio condiviso non disponibile: import non possibile in questa vista.', 'bad'); return; }
+  let leads;
+  try {
+    leads = parseLeads(await file.arrayBuffer());
+    if (!leads.length) throw new Error('nessun lead trovato');
+  } catch (err) {
+    showBanner(`Import non riuscito: ${err.message}.`, 'bad');
+    return;
+  }
+  // Piano: aggiorna i lead già presenti nella stessa sede, unisce i doppioni della stessa sede
+  // al nominativo esistente, crea gli altri. Un lead già assegnato a un'altra sede non viene spostato.
+  const known = new Map();   // lead_id -> { p: lead principale, sede }
+  const byKey = new Map();   // sede|chiave persona -> lead principale
+  for (const l of everyLead()) {
+    known.set(l.lead_id, { p: l.lead_id, sede: l.sede });
+    for (const a of l.altriLead || []) known.set(a.lead_id, { p: l.lead_id, sede: l.sede });
+    for (const k of personKeys(l)) if (!byKey.has(l.sede + '|' + k)) byKey.set(l.sede + '|' + k, l.lead_id);
+  }
+  const updates = new Map(), creates = new Map(), merges = new Map();
+  let giaUniti = 0, doppioni = 0;
+  const altraSede = new Map(); // sede -> quanti lead del file sono già in quella sede
+  for (const row of leads) {
+    const l = { ...row, sede };
+    const k = known.get(l.lead_id);
+    if (k && k.sede !== sede) { altraSede.set(k.sede, (altraSede.get(k.sede) || 0) + 1); continue; }
+    if (k && k.p === l.lead_id) { (creates.has(k.p) ? creates : updates).set(k.p, l); continue; }
+    if (k) { giaUniti++; continue; }
+    const hit = personKeys(l).map((pk) => byKey.get(sede + '|' + pk)).find(Boolean);
+    if (hit) {
+      if (!merges.has(hit)) merges.set(hit, []);
+      merges.get(hit).push(entryOf(l));
+      known.set(l.lead_id, { p: hit, sede });
+      doppioni++;
+      continue;
+    }
+    creates.set(l.lead_id, l);
+    known.set(l.lead_id, { p: l.lead_id, sede });
+    for (const pk of personKeys(l)) if (!byKey.has(sede + '|' + pk)) byKey.set(sede + '|' + pk, l.lead_id);
+  }
+
+  const btn = $('import-btn');
+  btn.disabled = true;
+  const now = new Date().toISOString();
+  const jobs = [];
+  const createdDone = [], mergedDone = {};
+  for (const [id, l] of updates) jobs.push(() => db.collection('leads').doc(id).update({ ...l, importato: now }));
+  for (const [id, l] of creates) {
+    jobs.push(async () => {
+      await db.collection('leads').doc(id).set({ ...l, importato: now, ultimo: null, nContatti: 0, altriLead: merges.get(id) || [] });
+      createdDone.push(id);
+    });
+  }
+  for (const [id, entries] of merges) {
+    if (creates.has(id)) continue;
+    const main = findLead(id);
+    const seen = new Set((main?.altriLead || []).map((a) => a.lead_id));
+    const add = entries.filter((a) => !seen.has(a.lead_id));
+    if (!add.length) continue;
+    jobs.push(async () => {
+      await db.collection('leads').doc(id).update({ altriLead: [...(main?.altriLead || []), ...add] });
+      mergedDone[id] = add.map((a) => a.lead_id);
+    });
+  }
+  const saveRecord = async () => {
+    if (!createdDone.length && !Object.keys(mergedDone).length) return null;
+    try {
+      return await db.collection('imports').add({
+        sede, file: file.name, at: now, operatore: getName(), nuovi: createdDone.length,
+        aggiornati: updates.size, doppioni, created: createdDone, merged: mergedDone, annullato: null,
+      });
+    } catch { return null; }
+  };
+  let done = 0;
+  try {
+    const worker = async () => {
+      while (jobs.length) {
+        await jobs.shift()();
+        done++;
+        showBanner(`Importazione ${SEDE_NAME[sede]}: ${done} di ${done + jobs.length}…`);
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    const parts = [`${creates.size} nuovi leads`, `${updates.size} aggiornati`];
+    if (doppioni) parts.push(`${doppioni} doppioni uniti a nominativi già presenti`);
+    if (giaUniti) parts.push(`${giaUniti} già uniti in precedenza`);
+    for (const [sd, n] of altraSede) parts.push(`${n} già presenti in ${SEDE_NAME[sd] || 'un\'altra sede'} e lasciati lì`);
+    const rec = await saveRecord();
+    showBanner(`Import ${SEDE_NAME[sede]} completato da "${file.name}": ${parts.join(', ')}.`, altraSede.size ? '' : 'ok',
+      rec ? { label: 'Annulla questo import', fn: () => undoImport(rec.id) } : null);
+    $('sede').value = sede;
+    store('sede', sede);
+    renderList();
+  } catch (err) {
+    const rec = await saveRecord();
+    showBanner(`Import interrotto dopo ${done} operazioni. ${writeErrorText(err)}`, 'bad',
+      rec ? { label: 'Annulla la parte importata', fn: () => undoImport(rec.id) } : null);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------- eliminazione con password ----------
+// Protezione contro le eliminazioni per sbaglio: chi apre il codice della pagina può comunque vederne l'impronta.
+const PW_HASH = 'ce75d6e0745c21d7712890c8ce7e0353eee200b8650dbfb87ea1170eb6ae9af5';
+async function checkPassword(pw) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('') === PW_HASH;
+  } catch { return false; }
+}
+async function deleteLeads(leads, onProgress) {
+  let n = 0;
+  for (const l of leads) {
+    const cs = await db.collection('contatti').where('leadId', '==', l.lead_id).get();
+    for (const c of cs.docs) await db.collection('contatti').doc(c.id).delete();
+    await db.collection('leads').doc(l.lead_id).delete();
+    n++;
+    if (onProgress) onProgress(n);
+  }
+  return n;
+}
+
+function delTargets() {
+  const v = $('del-scope').value;
+  return v === 'all' ? everyLead() : [...(bySede.get(v)?.values() || [])];
+}
+function updateDelCount() {
+  const n = delTargets().length;
+  $('del-count').textContent = n === 1 ? 'Verrà eliminato 1 lead.' : `Verranno eliminati ${n} leads.`;
+  $('del-go').disabled = n === 0;
+}
+$('del-btn').addEventListener('click', () => {
+  $('del-scope').innerHTML = SEDI.map(([c, n]) => `<option value="${c}">Tutti i leads di ${esc(n)}</option>`).join('') +
+    '<option value="all">Tutti i leads di tutte le sedi</option>';
+  $('del-scope').value = $('sede').value || SEDI[0][0];
+  $('del-pw').value = '';
+  $('del-msg').textContent = '';
+  updateDelCount();
+  $('del-modal').hidden = false;
+  $('del-pw').focus();
+});
+$('del-scope').addEventListener('change', updateDelCount);
+$('del-cancel').addEventListener('click', () => { $('del-modal').hidden = true; });
+$('del-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) { $('del-msg').textContent = 'Archivio condiviso non disponibile.'; return; }
+  if (!(await checkPassword($('del-pw').value))) { $('del-msg').textContent = 'Password errata.'; $('del-pw').select(); return; }
+  const scope = $('del-scope').value;
+  const targets = delTargets();
+  $('del-modal').hidden = true;
+  closeLead();
+  try {
+    const n = await deleteLeads(targets, (k) => showBanner(`Eliminazione in corso: ${k} di ${targets.length}…`));
+    if (scope === 'all') for (const i of imports) await db.collection('imports').doc(i.id).delete();
+    showBanner(`Eliminati ${n} leads${scope === 'all' ? ' di tutte le sedi' : ' di ' + SEDE_NAME[scope]}.`, 'ok');
+  } catch (err) {
+    showBanner(`Eliminazione interrotta. ${writeErrorText(err)}`, 'bad');
+  }
+});
+
+// Richiesta password generica: risolve true se la password è corretta, false se si annulla.
+function askPassword(title, text) {
+  return new Promise((resolve) => {
+    $('pw-title').textContent = title;
+    $('pw-text').textContent = text;
+    $('pw-input').value = '';
+    $('pw-msg').textContent = '';
+    $('pw-modal').hidden = false;
+    $('pw-input').focus();
+    const done = (ok) => {
+      $('pw-modal').hidden = true;
+      $('pw-form').removeEventListener('submit', onSubmit);
+      $('pw-cancel').removeEventListener('click', onCancel);
+      resolve(ok);
+    };
+    const onSubmit = async (e) => {
+      e.preventDefault();
+      if (await checkPassword($('pw-input').value)) done(true);
+      else { $('pw-msg').textContent = 'Password errata.'; $('pw-input').select(); }
+    };
+    const onCancel = () => done(false);
+    $('pw-form').addEventListener('submit', onSubmit);
+    $('pw-cancel').addEventListener('click', onCancel);
+  });
+}
+$('d-delete').addEventListener('click', async () => {
+  const l = findLead(state.open);
+  if (!l || !db) return;
+  const ok = await askPassword('Elimina questo lead',
+    `${l.cognome} ${l.nome} (lead ${l.lead_id}) verrà eliminato per tutti, insieme ai contatti registrati.`);
+  if (!ok) return;
+  try {
+    closeLead();
+    await deleteLeads([l]);
+    showBanner(`Lead ${l.cognome} ${l.nome} eliminato.`, 'ok');
+  } catch (err) { handleWriteError(err); }
+});
+
+// ---------- storico import e annullamento ----------
+let imports = [];
+function renderImports() {
+  const list = $('imports-list');
+  if (!imports.length) { list.innerHTML = '<li class="muted">Nessun import registrato.</li>'; return; }
+  list.innerHTML = imports.map((i) => `<li>
+    <div class="i-main">
+      <span class="i-title">${esc(SEDE_NAME[i.sede] || i.sede)} · ${esc(i.file)}</span>
+      <span class="i-meta">${fmtWhen(i.at)} · ${esc(i.operatore || '')} · ${i.nuovi || 0} nuovi, ${i.aggiornati || 0} aggiornati${i.doppioni ? ', ' + i.doppioni + ' doppioni uniti' : ''}</span>
+      ${i.annullato ? `<span class="undone">Annullato il ${fmtWhen(i.annullato)}${i.annullatoDa ? ' da ' + esc(i.annullatoDa) : ''}${i.tenuti?.length ? ` · ${i.tenuti.length} leads tenuti perché avevano già contatti` : ''}</span>` : ''}
+    </div>
+    ${i.annullato ? '' : `<button type="button" class="btn" data-undo="${esc(i.id)}">Annulla</button>`}
+  </li>`).join('');
+}
+$('history-btn').addEventListener('click', () => { renderImports(); $('imports-modal').hidden = false; });
+$('imports-close').addEventListener('click', () => { $('imports-modal').hidden = true; });
+$('imports-list').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-undo]');
+  if (!b) return;
+  $('imports-modal').hidden = true;
+  await undoImport(b.dataset.undo);
+});
+
+// Annulla un import: toglie i lead creati (tranne quelli su cui sono già stati registrati contatti)
+// e stacca i doppioni che aveva unito a lead esistenti. I lead solo aggiornati restano com'erano.
+async function undoImport(id) {
+  if (!db) return;
+  const ref = db.collection('imports').doc(id);
+  const snap = await ref.get();
+  const rec = snap.exists ? snap.data() : null;
+  if (!rec || rec.annullato) { showBanner('Questo import è già stato annullato.'); return; }
+  const ok = await askPassword('Annulla import',
+    `L'import di "${rec.file}" in ${SEDE_NAME[rec.sede] || rec.sede} del ${fmtWhen(rec.at)} verrà annullato: i leads che aveva aggiunto vengono tolti per tutti.`);
+  if (!ok) return;
+  let rimossi = 0;
+  const tenuti = [];
+  try {
+    for (const leadId of rec.created || []) {
+      const l = findLead(leadId);
+      if (l && (l.nContatti || 0) > 0) { tenuti.push(leadId); continue; }
+      await db.collection('leads').doc(leadId).delete();
+      rimossi++;
+      showBanner(`Annullamento in corso: ${rimossi} leads rimossi…`);
+    }
+    let staccati = 0;
+    for (const [mainId, ids] of Object.entries(rec.merged || {})) {
+      const l = findLead(mainId);
+      if (!l) continue;
+      const drop = new Set(ids);
+      await db.collection('leads').doc(mainId).update({ altriLead: (l.altriLead || []).filter((a) => !drop.has(a.lead_id)) });
+      staccati += ids.length;
+    }
+    await ref.update({ annullato: new Date().toISOString(), annullatoDa: getName(), tenuti });
+    if (state.open && !findLead(state.open)) closeLead();
+    const parts = [`${rimossi} leads rimossi`];
+    if (staccati) parts.push(`${staccati} doppioni staccati`);
+    showBanner(`Import "${rec.file}" (${SEDE_NAME[rec.sede]}) annullato: ${parts.join(', ')}.` +
+      (tenuti.length ? ` ${tenuti.length} leads sono rimasti perché hanno già contatti registrati: spostali dalla loro scheda.` : ' Ora puoi importare di nuovo il file nella sede giusta.'),
+      tenuti.length ? '' : 'ok');
+  } catch (err) {
+    showBanner(`Annullamento interrotto dopo ${rimossi} leads. ${writeErrorText(err)}`, 'bad');
+  }
+}
+
+// ---------- export ----------
+$('export-btn').addEventListener('click', async () => {
+  const SEZ = { attivi: 'Da lavorare', archivio: 'Archivio generale', successi: 'Contatti con successo' };
+  const sede = $('sede').value;
+  const rows = allLeads()
+    .sort((a, b) => (a.sede || '').localeCompare(b.sede || '') || (b.data_creazione || '').localeCompare(a.data_creazione || ''))
+    .map((l) => {
+      const u = l.ultimo;
+      return {
+        'Sede': SEDE_NAME[l.sede] || '', 'Sezione': SEZ[sezione(l)],
+        'Lead Id': l.lead_id, 'Lead Type': l.lead_type, 'Origine': l.origine, 'Cognome': l.cognome, 'Nome': l.nome,
+        'Cod. Fiscale': l.cod_fiscale, 'Targa': l.targa, 'Data scadenza polizza prec.': fmtDate(l.scadenza_polizza),
+        'Email': l.email, 'Cellulare': l.cellulare, 'Comune': l.comune, 'Data creazione lead': fmtDate(l.data_creazione),
+        'N. contatti': l.nContatti || 0, 'Ultimo contatto': u ? fmtWhen(u.at) : '',
+        'Modalità': u ? MODALITA[u.modalita] : '', 'Esito': u ? u.esito : 'Da contattare',
+        'Nota': u ? u.nota : '', 'Operatore': u ? u.operatore : '',
+        'Richiamo / appuntamento': u && u.richiamo ? fmtWhen(u.richiamo) : '',
+      };
+    });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Lead');
+  const data = new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
+  const nome = sede ? SEDE_NAME[sede].toLowerCase().replace(/\s+/g, '-') : 'tutte-le-sedi';
+  if (!downloads) { showBanner('Il salvataggio di file non è disponibile in questa vista: apri la pagina dal browser.', 'bad'); return; }
+  try {
+    await downloads.save({ filename: `lead-${nome}-${new Date().toISOString().slice(0, 10)}.xlsx`, data });
+  } catch (err) {
+    if (err && err.code !== 'declined') showBanner('Export non riuscito in questa vista.', 'bad');
+  }
+});
+
+// ---------- avvio ----------
+$('sede').innerHTML = sedeOptions(true);
+$('name-sede').innerHTML = sedeOptions(false);
+$('imp-sede').innerHTML = '<option value="">Scegli la sede</option>' + sedeOptions(false);
+$('d-sede').innerHTML = '<option value="">Senza sede</option>' + sedeOptions(false);
+$('sede').value = SEDE_NAME[load('sede')] ? load('sede') : '';
+$('f-esito').innerHTML += ESITI.filter(([e]) => e !== ESITO_SUCCESSO).map(([e]) => `<option>${esc(e)}</option>`).join('');
+$('c-esito').innerHTML += ESITI.map(([e]) => `<option>${esc(e)}</option>`).join('');
+renderMe();
+renderList();
+if (!getName()) askName();
+// Il passaggio in archivio dipende dal tempo: ricalcola le sezioni ogni 10 minuti.
+setInterval(renderList, 10 * 60 * 1000);
+
+// ---------- archivio sul sito dell'agenzia (versione da caricare sull'hosting) ----------
+// Imita le funzioni dell'archivio di claude.ai usate dalla pagina, appoggiandosi ad api.php.
+function createSiteDb(apiUrl, getCode, onAuthError) {
+  const cache = new Map();           // collezione -> Map(id -> dati)
+  const listeners = new Set();
+  let version = 0, syncing = null, readyResolve;
+  const ready = new Promise((r) => { readyResolve = r; });
+  const col = (c) => { if (!cache.has(c)) cache.set(c, new Map()); return cache.get(c); };
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+
+  async function call(method, body, query = '') {
+    const res = await fetch(apiUrl + query, {
+      method, cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Code': getCode() },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) { onAuthError(); throw { code: 'unauthorized', message: 'Codice di accesso non valido' }; }
+    if (res.status === 404) throw { code: 'invalid_argument', message: 'Documento non trovato' };
+    if (!res.ok) throw { code: 'unavailable', message: 'Errore del server (' + res.status + ')' };
+    return res.json();
+  }
+  function notify() { for (const l of listeners) { try { l(); } catch (e) { console.error(e); } } }
+  function apply(c, id, d) { if (d === null || d === undefined) col(c).delete(id); else col(c).set(id, Object.freeze(d)); }
+  async function sync() {
+    if (syncing) return syncing;
+    syncing = (async () => {
+      const r = await call('GET', null, '?op=sync&since=' + version);
+      for (const ch of r.changes) apply(ch.c, ch.id, ch.d);
+      const changed = r.changes.length > 0 || version === 0;
+      version = r.version;
+      readyResolve();
+      if (changed) notify();
+    })().finally(() => { syncing = null; });
+    return syncing;
+  }
+  function snapOf(id, d) { return { id, exists: d !== undefined, data: () => d, metadata: { fromCache: false, hasPendingWrites: false } }; }
+  function docRef(c, id) {
+    return {
+      id, path: c + '/' + id,
+      async get() { await ready; return snapOf(id, col(c).get(id)); },
+      async set(data) { const r = await call('POST', { op: 'set', c, id, d: clone(data) }); apply(c, id, r.d); notify(); },
+      async update(data) { const r = await call('POST', { op: 'update', c, id, d: clone(data) }); apply(c, id, r.d); notify(); },
+      async delete() { await call('POST', { op: 'delete', c, id }); apply(c, id, null); notify(); },
+    };
+  }
+  function query(c, filters = [], order = null, lim = null) {
+    function run() {
+      let docs = [...col(c)].map(([id, d]) => ({ id, d }));
+      for (const [f, op, v] of filters) {
+        if (op !== '==') throw new Error('Filtro non supportato: ' + op);
+        docs = docs.filter((x) => x.d[f] === v);
+      }
+      if (order) {
+        const [f, dir] = order;
+        docs.sort((a, b) => {
+          const va = a.d[f], vb = b.d[f];
+          if (va === undefined && vb !== undefined) return 1;
+          if (vb === undefined && va !== undefined) return -1;
+          return (va < vb ? -1 : va > vb ? 1 : 0) * (dir === 'desc' ? -1 : 1);
+        });
+      } else docs.sort((a, b) => (a.id < b.id ? -1 : 1));
+      if (lim) docs = docs.slice(0, lim);
+      const out = docs.map((x) => snapOf(x.id, x.d));
+      return { docs: out, size: out.length, empty: out.length === 0, docChanges: () => [], metadata: { fromCache: false, hasPendingWrites: false } };
+    }
+    return {
+      path: c,
+      where: (f, op, v) => query(c, [...filters, [f, op, v]], order, lim),
+      orderBy: (f, dir = 'asc') => query(c, filters, [f, dir], lim),
+      limit: (n) => query(c, filters, order, n),
+      async get() { await ready; return run(); },
+      onSnapshot(next, error) {
+        const l = () => next(run());
+        listeners.add(l);
+        ready.then(l, error);
+        return () => listeners.delete(l);
+      },
+      doc: (id) => docRef(c, id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 10))),
+      async add(data) { const ref = docRef(c, Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); await ref.set(data); return ref; },
+    };
+  }
+  return {
+    collection: (c) => query(c),
+    doc: (path) => { const [c, id] = path.split('/'); return docRef(c, id); },
+    sync,
+    start() {
+      // Aggiornamento ogni 5 secondi (subito quando si torna sulla pagina).
+      setInterval(() => { if (!document.hidden) sync().catch(() => {}); }, 5000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) sync().catch(() => {}); });
+    },
+  };
+}
+function readCode() { try { return localStorage.getItem('codice-accesso') || ''; } catch { return ''; } }
+function askCode(message) {
+  return new Promise((resolve) => {
+    $('code-msg').textContent = message || '';
+    $('code-input').value = '';
+    $('code-modal').hidden = false;
+    $('code-input').focus();
+    $('code-form').onsubmit = (e) => {
+      e.preventDefault();
+      const v = $('code-input').value.trim();
+      if (!v) return;
+      try { localStorage.setItem('codice-accesso', v); } catch {}
+      window.__code = v;
+      $('code-modal').hidden = true;
+      resolve(v);
+    };
+  });
+}
+const siteDownloads = {
+  async save({ filename, data }) {
+    const url = URL.createObjectURL(new Blob([data]));
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    return { status: 'saved' };
+  },
+};
+
+function startSubscriptions() {
+  if (state.open) subscribeHistory(state.open);
+  db.collection('imports').orderBy('at', 'desc').limit(30).onSnapshot((snap) => {
+    imports = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    if (!$('imports-modal').hidden) renderImports();
+  }, () => {});
+  // Una sottoscrizione per sede: fino a 1000 lead per sede.
+  for (const [code] of SEDI) {
+    db.collection('leads').where('sede', '==', code).limit(1000).onSnapshot((snap) => {
+      bySede.set(code, new Map(snap.docs.map((d) => [d.id, { ...d.data(), lead_id: d.id }])));
+      renderList();
+      if (state.open) renderDrawer();
+    }, () => showBanner('Aggiornamento dei leads interrotto: ricarica la pagina.', 'bad'));
+  }
+}
+
+(async () => {
+  if (window.LEADS_API) {
+    // Versione per il sito dell'agenzia: prima si verifica il codice di accesso, poi si chiede il nome.
+    window.__code = readCode();
+    let booting = true;
+    const siteDb = createSiteDb(window.LEADS_API, () => window.__code || '', () => {
+      if (booting || !$('code-modal').hidden) return;
+      askCode('Il codice di accesso è cambiato o non è più valido. Inseriscilo di nuovo.').then(() => siteDb.sync().catch(() => {}));
+    });
+    $('name-modal').hidden = true;
+    db = siteDb;
+    downloads = siteDownloads;
+    startSubscriptions();
+    let msg = '';
+    for (;;) {
+      if (!window.__code) await askCode(msg);
+      try { await siteDb.sync(); break; }
+      catch (err) {
+        if (err.code === 'unauthorized') {
+          window.__code = '';
+          try { localStorage.removeItem('codice-accesso'); } catch {}
+          msg = 'Codice di accesso non valido. Riprova.';
+          continue;
+        }
+        showBanner("Non riesco a raggiungere l'archivio sul sito (api.php). Controlla la connessione e ricarica la pagina.", 'bad');
+        return;
+      }
+    }
+    booting = false;
+    if (!getName()) askName();
+    siteDb.start();
+    return;
+  }
+  if (!window.claude || !window.claude.use) {
+    showBanner('Apri questa pagina dal link di claude.ai per vedere e salvare i leads condivisi.', 'bad');
+    return;
+  }
+  const [dbNs, dlNs] = await Promise.all([claude.use('db'), claude.use('downloads')]);
+  downloads = dlNs;
+  if (!dbNs) {
+    showBanner('Archivio condiviso non disponibile in questa vista: accedi a claude.ai con un account che ha accesso alla pagina.', 'bad');
+    return;
+  }
+  db = dbNs;
+  startSubscriptions();
+})();
+</script>
+
+</body>
+</html>
