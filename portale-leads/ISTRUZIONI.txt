@@ -5,47 +5,40 @@ Contenuto della cartella
 ------------------------
   index.html   la pagina del portale
   api.php      l'archivio condiviso (salva leads, contatti e import)
-  config.php   le impostazioni (codice di accesso)
+  config.php   le impostazioni
   dati/        la cartella dove vengono salvati i dati
+  robots.txt   chiede ai motori di ricerca di non indicizzare il portale
   .htaccess    protezioni aggiuntive per gli hosting Apache
 
 Requisiti dell'hosting
 ----------------------
   - PHP 7.4 o superiore (va bene qualsiasi hosting Linux comune: Aruba, Register, SiteGround...)
   - Certificato HTTPS attivo sul dominio (indirizzo che inizia con https://).
-    Il portale contiene dati personali dei clienti: non usarlo mai su http:// semplice.
 
 Installazione (una volta sola)
 ------------------------------
-1. Apri config.php con un editor di testo (Blocco note va bene) e sostituisci
-       cambia-questo-codice
-   con il codice di accesso che vuoi dare ai collaboratori. Sceglilo lungo e
-   difficile da indovinare (per esempio tre parole e un numero). Salva il file.
-
-2. Carica TUTTA la cartella sull'hosting, con il pannello dell'hosting (File Manager)
-   o con un programma FTP (per esempio FileZilla), ad esempio in:
-       https://www.vostrosito.it/leads/
+1. Carica TUTTA la cartella sull'hosting, con il pannello dell'hosting (File Manager)
+   o con un programma FTP (per esempio FileZilla).
    Attenzione: carica anche i file che iniziano con il punto (.htaccess).
+
+2. IMPORTANTE: dai alla cartella un nome difficile da indovinare, per esempio
+       https://www.vostrosito.it/leads-a7k29x/
+   e non semplicemente /leads/. Il portale non chiede password: chiunque conosca
+   l'indirizzo può vedere i dati dei clienti, quindi l'indirizzo va dato solo ai
+   collaboratori.
 
 3. Controlla che la cartella "dati" sia scrivibile dal sito (permessi 755).
    Su quasi tutti gli hosting lo è già.
 
-4. Apri l'indirizzo nel browser: il portale chiede il codice di accesso e poi
-   nome e sede. Da lì funziona come la versione su claude.ai.
-
-5. Manda ai collaboratori l'indirizzo e il codice di accesso (meglio su due canali
-   diversi, per esempio l'indirizzo per email e il codice a voce o via SMS).
+4. Apri l'indirizzo nel browser: il portale chiede nome e cognome e la sede.
+   Da lì funziona come la versione su claude.ai.
 
 Uso quotidiano
 --------------
-  - Il codice viene chiesto una sola volta su ogni computer.
+  - Nome e cognome vengono chiesti una sola volta su ogni computer e compaiono
+    accanto a ogni contatto registrato.
   - I dati si aggiornano da soli ogni 5 secondi: tutti vedono il lavoro degli altri.
   - La password per eliminare leads e annullare import resta: Amministratore
-
-Cambiare il codice di accesso
------------------------------
-  Modifica config.php e ricaricalo sull'hosting. Al successivo accesso il portale
-  chiede il nuovo codice a tutti.
 
 Copia di sicurezza
 ------------------
@@ -60,6 +53,3 @@ Note
     portale parte vuoto e va riempito importando i file Excel delle sedi.
   - Il file dati/archivio.php non si può aprire dal browser: anche se qualcuno ne
     conosce l'indirizzo, riceve una pagina vuota.
-  - La password "Amministratore" evita le eliminazioni per sbaglio, ma non è una
-    protezione vera: chi ha il codice di accesso e conosce il funzionamento del
-    sito potrebbe aggirarla.

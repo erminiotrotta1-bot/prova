@@ -1,6 +1,6 @@
 <?php
 // Archivio condiviso del portale Leads: salva leads, contatti e import in un unico file
-// nella cartella dei dati. Ogni richiesta deve portare il codice di accesso (intestazione X-Access-Code).
+// nella cartella dei dati.
 
 declare(strict_types=1);
 require __DIR__ . '/config.php';
@@ -24,16 +24,6 @@ function rispondi(int $status, array $dati): void {
     http_response_code($status);
     echo json_encode($dati, JSON_UNESCAPED_UNICODE);
     exit;
-}
-
-// --- Codice di accesso -------------------------------------------------------
-if (CODICE_ACCESSO === '' || CODICE_ACCESSO === 'cambia-questo-codice') {
-    rispondi(500, ['error' => 'config', 'message' => 'Imposta CODICE_ACCESSO in config.php']);
-}
-$codice = $_SERVER['HTTP_X_ACCESS_CODE'] ?? '';
-if (!is_string($codice) || !hash_equals(CODICE_ACCESSO, $codice)) {
-    usleep(600000); // rallenta i tentativi a caso
-    rispondi(401, ['error' => 'unauthorized']);
 }
 
 // --- Archivio su file --------------------------------------------------------
